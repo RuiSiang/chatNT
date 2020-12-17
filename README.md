@@ -1,5 +1,6 @@
 # chatNT
 Anonymous p2p chatroom application in C++ based on onion relay concept.
 
-Supported OS: Windows
-Dependencies: thread, WinSock2.h, SDL2.h
+Supported OS: Windows and Linux
+
+Dependencies: standard c++ 11+ library, WinSock2.h(windows) or socket.h(linux), SDL2.h
