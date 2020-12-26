@@ -4,11 +4,11 @@ all: relay clean
 CC = g++
 INCLUDE = .
 CFLAGS = -Wall -Wextra -ansi -g -std=c++14
-PFLAGS = -O3 -lpthread -lws2_32 #uncomment that for windows compiler
+PFLAGS = -lpthread -lws2_32
 
 #runner
 relay: relay.o listener_thread.o handler_thread.o logger.o
-	$(CC) relay.o listener_thread.o handler_thread.o logger.o -o relay $(PFLAGS)
+	$(CC) relay.o listener_thread.o handler_thread.o logger.o -o bin/relay $(PFLAGS)
 
 relay.o: relay.cpp listener_thread.h handler_thread.h
 	$(CC) -I$(INCLUDE) $(CFLAGS) -c relay.cpp

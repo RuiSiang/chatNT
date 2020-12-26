@@ -1,5 +1,8 @@
 #include "listener_thread.h"
 #include "socket_control.h"
+#include "logger.h"
+#include "ssl_handler.h"
+#include "base64.h"
 
 #include <iostream>
 #include <cstring>
@@ -8,6 +11,8 @@
 #include <thread>
 #include <vector>
 #include <stdint.h>
+
+#include <openssl/pem.h>
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -28,6 +33,17 @@ int main(int argc, char *argv[])
   WSADATA wsaData;
   WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
+  /*unsigned char test[] = "tesattest 1234567890";
+  string s = encodeBase64(test);
+  cout << s << "-\n";
+  string test1 = decodeBase64(s);
+  cout << test1 << "-\n";*/
+  SslHandler sslHandler;
+  string test = sslHandler.encryptMessage("123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()");
+  cout << test << "\n--\n";
+  string _test = sslHandler.decryptMessage(test);
+  cout << _test << "\n";
+  /*
   //connection initialization start
   mainSocketControl = new SocketControl;
   while (true)
@@ -86,6 +102,7 @@ int main(int argc, char *argv[])
   t1.join();
   cout << "Socket closed\n";
   mainSocketControl->terminate();
+  */
 #ifdef _WIN32
   WSACleanup();
 #endif
