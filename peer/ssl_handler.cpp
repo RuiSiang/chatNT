@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#define keySize 1024
+#define keySize 4096
 
 using namespace std;
 
@@ -36,6 +36,7 @@ SslHandler::SslHandler()
   EVP_PKEY *key = NULL;
   EVP_PKEY_keygen(keyCtx, &key);
   EVP_PKEY_CTX_free(keyCtx);
+  info("Key generation successful\n");
 
   // extract private key
   BIO *privateKeyBio = BIO_new(BIO_s_mem());
@@ -48,14 +49,15 @@ SslHandler::SslHandler()
   BIO *publicKeyBio = BIO_new(BIO_s_mem());
   PEM_write_bio_PUBKEY(publicKeyBio, key);
   int publicKeyLength = BIO_pending(publicKeyBio);
-  unsigned char *publicKeyArr = new unsigned char[publicKeyLength + 1];
+  unsigned char *publicKeyArr = new unsigned char[publicKeyLength];
   memset(publicKeyArr, '\0', publicKeyLength);
   BIO_read(publicKeyBio, publicKeyArr, publicKeyLength);
   publicKey = string((char *)publicKeyArr);
-  descriptor = sha256(publicKey);
-  BIO_free_all(publicKeyBio);
+  hashId = sha256(publicKey);
 
-  info("Key generation successful\n");
+  info("Client hash id: " + hashId + "\n"); 
+
+  BIO_free_all(publicKeyBio);
 }
 
 string SslHandler::encryptMessage(string message, string publicKey)

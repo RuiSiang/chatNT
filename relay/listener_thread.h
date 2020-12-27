@@ -6,12 +6,12 @@
 #include <string>
 #include "logger.h"
 
-struct Dataset {
-    std::string username;
-    int balance;
+struct Dataset
+{
+    std::string hashId;
     std::string ip;
     int port;
-    bool active=0;
+    std::string publicKey;
 };
 class ListenerThread
 {

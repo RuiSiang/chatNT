@@ -73,6 +73,10 @@ void ListenerThread::startListen()
     thread sth(&HandlerThread::handler, newThread);
     sth.detach();
   }
+  delete this;
+}
 
-  close(listenerSocketDescriptor);
+ListenerThread::~ListenerThread()
+{
+  closesocket(listenerSocketDescriptor);
 }

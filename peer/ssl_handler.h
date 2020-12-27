@@ -10,7 +10,7 @@ class SslHandler
 {
 public:
   SslHandler();
-  std::string getDescriptor() { return descriptor; }
+  std::string getHashId() { return hashId; }
   std::string getPublicKey() { return publicKey; }
 
   std::string encryptMessage(std::string, std::string);
@@ -19,7 +19,7 @@ public:
   bool verifyMessage(std::string, std::string, std::string);
 
 private:
-  std::string descriptor;
+  std::string hashId;
   std::string publicKey;
   RSA *privateKey;
 };

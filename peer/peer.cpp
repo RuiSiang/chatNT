@@ -11,8 +11,8 @@
 #include <thread>
 #include <vector>
 #include <stdint.h>
-
-#include <openssl/pem.h>
+#include <signal.h>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -33,62 +33,50 @@ int main(int argc, char *argv[])
   WSADATA wsaData;
   WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
-  /*unsigned char test[] = "tesattest 1234567890";
-  string s = encodeBase64(test);
-  cout << s << "-\n";
-  string test1 = decodeBase64(s);
-  cout << test1 << "-\n";*/
-  SslHandler sslHandler;
-  string test = sslHandler.signMessage("asdjfhe;ahtirt;      oh4a8hejagfiso;hHO\"  JI\"HIO\"HI;d jak;lgfa jsdklg;jeiohjsad ;gjkl;asjkgha;iehsaiheitouasilvfdn;jklsavdjfklv;anjsdkfl; jkls;jfksald;jk;   aeihtieutpouqwi5uiwroeqthf u i u e w i tpueitopueasiouiOJHLL:HLKHJU&)P#&(*)*()$P*()jlk;jsk as dfs adf asd fe ajir;jsea t aes t ase t as et asjeito' asjuieo 'tuseaip' tupise' auotp' jsaoei tjisae' ut9'3u ijuI \"UJ IO JIO jip' JIP\" ji' JKL Jkl; jkl;l JKL: Jkl; jkl;j klad;jgio;jheiaoho        isejgaasdfnes;ahjlk hj;as hUJ: HJ:u8o *IO*: Yhiu;o hisdf;g hsiald;ghjkdl; xhgjs;la ghjsd.hgj;asjhfdo;ijdsakl;f;jsakldjfkl;");
-  cout << test << "\n--\n";
-  bool _test = sslHandler.verifyMessage("asdjfhe;ahtirt;      oh4a8hejagfiso;hHO\"  JI\"HIO\"HI;d jak;lgfa jsdklg;jeiohjsad ;gjkl;asjkgha;iehsaiheitouasilvfdn;jklsavdjfklv;anjsdkfl; jkls;jfksald;jk;   aeihtieutpouqwi5uiwroeqthf u i u e w i tpueitopueasiouiOJHLL:HLKHJU&)P#&(*)*()$P*()jlk;jsk as dfs adf asd fe ajir;jsea t aes t ase t as et asjeito' asjuieo 'tuseaip' tupise' auotp' jsaoei tjisae' ut9'3u ijuI \"UJ IO JIO jip' JIP\" ji' JKL Jkl; jkl;l JKL: Jkl; jkl;j klad;jgio;jheiaoho        isejgaasdfnes;ahjlk hj;as hUJ: HJ:u8o *IO*: Yhiu;o hisdf;g hsiald;ghjkdl; xhgjs;la ghjsd.hgj;asjhfdo;ijdsakl;f;jsakldjfkl;",test, sslHandler.getPublicKey());
-  cout << _test << "\n";
-  /*
-  //connection initialization start
-  mainSocketControl = new SocketControl;
-  while (true)
-  {
-    char ip[100];
-    int port;
-    cout << "Please input server IP (v4): ";
-    cin >> ip;
-    cout << "Please input server port: ";
-    cin >> port;
-    if (mainSocketControl->bind(ip, port) == -1)
-    {
-      cout << "Connection failed, please check your ip and port input\n";
-    }
-    else
-    {
-      break;
-    }
-  }
-  //connection initialization end
 
-  //functionals start
-  int clientPort;
-  while (true)
+  //initialization start
+  mainSocketControl = new SocketControl;
+
+  char ip[100];
+  int port;
+  cout << "Please input relay server IP (v4): ";
+  cin >> ip;
+  cout << "Please input relay server port: ";
+  cin >> port;
+  if (mainSocketControl->bind(ip, port) == -1)
   {
-    cout << "Client port to open: ";
-    cin >> clientPort;
-    if (clientPort >= 1024 && clientPort <= 65536)
-    {
-      break;
-    }
+    cout << "Connection failed, please check your ip and port input\n";
+    exit(0);
+  }
+
+  SslHandler sslHandler;
+
+  short int clientPort = 1024;
+  while (CheckPortTCP(clientPort))
+  {
+    clientPort++;
   }
   ListenerThread *masterListenThread = new ListenerThread(clientPort, mainSocketControl);
+  info("P2P service initialized at port " + to_string(clientPort) + "\n");
   thread t1(&ListenerThread::startListen, masterListenThread);
+  string receiveString = "";
+  string sendString = "REGISTER#" + sslHandler.getHashId() + "#" + to_string(clientPort) + "#" + sslHandler.getPublicKey();
+  receiveString = mainSocketControl->sendCommand(sendString);
+  info("Client registered at relay server\n");
+  //initialization end
+
+  //functionals start
 
   while (true)
   {
     string command;
     cout << "Input test command: ";
     cin >> command;
-    if (command == "logout")
+    if (command == "EXIT")
     {
-      string sendString = "Exit";
+      string sendString = "EXIT";
       string receiveString = mainSocketControl->sendCommand(sendString);
-      break;
+      exit(-1);
     }
     else
     {
@@ -101,8 +89,7 @@ int main(int argc, char *argv[])
 
   t1.join();
   cout << "Socket closed\n";
-  mainSocketControl->terminate();
-  */
+  delete mainSocketControl;
 #ifdef _WIN32
   WSACleanup();
 #endif

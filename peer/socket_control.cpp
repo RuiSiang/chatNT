@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define CHUNK_SIZE 100
+#define CHUNK_SIZE 1024
 
 #ifdef __linux__
 #include <sys/types.h>
@@ -20,6 +20,30 @@
 #endif
 
 using namespace std;
+
+bool CheckPortTCP(short int testPort)
+{
+  struct sockaddr_in client;
+  int testDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+  client.sin_family = AF_INET;
+  client.sin_port = htons(testPort);
+  client.sin_addr.s_addr = inet_addr("127.0.0.1");
+  testDescriptor = (int)socket(AF_INET, SOCK_STREAM, 0);
+  if (testDescriptor == INVALID_SOCKET)
+  {
+    return false;
+  }
+  int result = connect(testDescriptor, (struct sockaddr *)&client, sizeof(client));
+  if (result == SOCKET_ERROR)
+  {
+    return false;
+  }
+  else
+  {
+    closesocket(testDescriptor);
+    return true;
+  }
+}
 
 SocketControl::SocketControl()
 {
@@ -57,9 +81,15 @@ int SocketControl::bind(char ip[100], int port)
 string SocketControl::sendCommand(string sendString)
 {
   char sendData[CHUNK_SIZE], receiveData[CHUNK_SIZE];
-  memset(sendData, '\0', sizeof(sendData));
-  strncpy(sendData, sendString.c_str(), sizeof(sendData));
-  send(socketDescriptor, sendData, sizeof(sendData), 0);
+  int iter = 0;
+  while (iter * CHUNK_SIZE < sendString.length())
+  {
+    string substring = sendString.substr(iter * CHUNK_SIZE, CHUNK_SIZE);
+    memset(sendData, '\0', sizeof(sendData));
+    strncpy(sendData, sendString.c_str(), substring.length());
+    send(socketDescriptor, sendData, sizeof(sendData), 0);
+    iter++;
+  }
   string receiveString = "";
   while (true)
   {
@@ -74,7 +104,7 @@ string SocketControl::sendCommand(string sendString)
   return receiveString;
 }
 
-void SocketControl::terminate()
+SocketControl::~SocketControl()
 {
-  close(socketDescriptor);
+  closesocket(socketDescriptor);
 }

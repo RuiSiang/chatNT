@@ -8,7 +8,7 @@
 #include <thread>
 #include <unistd.h>
 
-#define CHUNK_SIZE 100
+#define CHUNK_SIZE 1024
 
 #ifdef __linux__
 #include <sys/types.h>
@@ -26,33 +26,72 @@ void HandlerThread::handler()
   string sendString, receiveString;
   memset(sendData, '\0', sizeof(sendData));
   sendString = "Handler Assigned\n";
+  sendMessage(sendString);
+  while (true)
+  {
+    receiveString = receiveMessage();
+    if (receiveString != "SIGFAULT")
+    {
+      if (process(receiveString))
+      {
+        break;
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+  memset(sendData, '\0', sizeof(sendData));
+  sendString = "Payment received, retransmitting to server\n";
   strncpy(sendData, sendString.c_str(), sizeof(sendData));
   send(threadSocketDescriptor, sendData, sizeof(sendData), 0);
-  receiveString = "";
+
+  delete this;
+}
+
+HandlerThread::~HandlerThread()
+{
+  closesocket(threadSocketDescriptor);
+}
+
+int HandlerThread::process(string receiveString)
+{
+  info(receiveString + "asdf");
+  return 0;
+}
+
+string HandlerThread::receiveMessage(void)
+{
+  char receiveData[CHUNK_SIZE];
+  string receiveString = "";
   while (true)
   {
     memset(receiveData, '\0', sizeof(receiveData));
-    recv(threadSocketDescriptor, receiveData, sizeof(receiveData), 0);
+    int recvErr = recv(threadSocketDescriptor, receiveData, sizeof(receiveData), 0);
+    if (recvErr < 0)
+    {
+      return "SIGFAULT";
+    }
     receiveString += string(receiveData);
     if (string(receiveData).length() < CHUNK_SIZE)
     {
       break;
     }
   }
-  process(receiveString);
-  memset(sendData, '\0', sizeof(sendData));
-  sendString = "Payment received, retransmitting to server\n";
-  strncpy(sendData, sendString.c_str(), sizeof(sendData));
-  send(threadSocketDescriptor, sendData, sizeof(sendData), 0);
-
-  info("Thread " + to_string(threadSocketDescriptor) + " terminated\n");
-  close(threadSocketDescriptor);
-
-  delete this;
+  return receiveString;
 }
 
-int HandlerThread::process(string receiveString)
+void HandlerThread::sendMessage(string sendString)
 {
-  info(receiveString);
-  return 0;
+  char sendData[CHUNK_SIZE];
+  int iter = 0;
+  while (iter * CHUNK_SIZE < sendString.length())
+  {
+    string substring = sendString.substr(iter * CHUNK_SIZE, CHUNK_SIZE);
+    memset(sendData, '\0', sizeof(sendData));
+    strncpy(sendData, substring.c_str(), substring.length());
+    send(threadSocketDescriptor, sendData, sizeof(sendData), 0);
+    iter++;
+  }
 }

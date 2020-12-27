@@ -22,8 +22,10 @@ private:
   int threadSocketDescriptor;
   int process(std::string);
   std::vector<Dataset> *dataset;
-  std::string username;
   std::string ip;
+  std::string hashId;
+  void sendMessage(std::string);
+  std::string receiveMessage(void);
 };
 
 #endif

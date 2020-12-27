@@ -9,7 +9,7 @@
 #include <WinSock2.h>
 #endif
 
-#define CHUNK_SIZE 100
+#define CHUNK_SIZE 1024
 
 using namespace std;
 

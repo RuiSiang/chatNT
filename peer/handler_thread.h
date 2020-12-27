@@ -13,12 +13,15 @@ public:
     threadSocketDescriptor = descriptor;
     mainSocketControl = _mainsocketControl;
   }
+  ~HandlerThread();
   void handler();
 
 private:
   int threadSocketDescriptor;
   SocketControl *mainSocketControl;
   int process(std::string);
+  void sendMessage(std::string);
+  std::string receiveMessage(void);
 };
 
 #endif

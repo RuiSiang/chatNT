@@ -7,6 +7,7 @@ class ListenerThread
 {
 public:
     ListenerThread(int, SocketControl *);
+    ~ListenerThread();
     void startListen();
 
 private:
