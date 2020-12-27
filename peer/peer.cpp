@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
   string test1 = decodeBase64(s);
   cout << test1 << "-\n";*/
   SslHandler sslHandler;
-  string test = sslHandler.encryptMessage("123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()123456789testtesttesttest!@#$%^&*()");
+  string test = sslHandler.signMessage("asdjfhe;ahtirt;      oh4a8hejagfiso;hHO\"  JI\"HIO\"HI;d jak;lgfa jsdklg;jeiohjsad ;gjkl;asjkgha;iehsaiheitouasilvfdn;jklsavdjfklv;anjsdkfl; jkls;jfksald;jk;   aeihtieutpouqwi5uiwroeqthf u i u e w i tpueitopueasiouiOJHLL:HLKHJU&)P#&(*)*()$P*()jlk;jsk as dfs adf asd fe ajir;jsea t aes t ase t as et asjeito' asjuieo 'tuseaip' tupise' auotp' jsaoei tjisae' ut9'3u ijuI \"UJ IO JIO jip' JIP\" ji' JKL Jkl; jkl;l JKL: Jkl; jkl;j klad;jgio;jheiaoho        isejgaasdfnes;ahjlk hj;as hUJ: HJ:u8o *IO*: Yhiu;o hisdf;g hsiald;ghjkdl; xhgjs;la ghjsd.hgj;asjhfdo;ijdsakl;f;jsakldjfkl;");
   cout << test << "\n--\n";
-  string _test = sslHandler.decryptMessage(test);
+  bool _test = sslHandler.verifyMessage("asdjfhe;ahtirt;      oh4a8hejagfiso;hHO\"  JI\"HIO\"HI;d jak;lgfa jsdklg;jeiohjsad ;gjkl;asjkgha;iehsaiheitouasilvfdn;jklsavdjfklv;anjsdkfl; jkls;jfksald;jk;   aeihtieutpouqwi5uiwroeqthf u i u e w i tpueitopueasiouiOJHLL:HLKHJU&)P#&(*)*()$P*()jlk;jsk as dfs adf asd fe ajir;jsea t aes t ase t as et asjeito' asjuieo 'tuseaip' tupise' auotp' jsaoei tjisae' ut9'3u ijuI \"UJ IO JIO jip' JIP\" ji' JKL Jkl; jkl;l JKL: Jkl; jkl;j klad;jgio;jheiaoho        isejgaasdfnes;ahjlk hj;as hUJ: HJ:u8o *IO*: Yhiu;o hisdf;g hsiald;ghjkdl; xhgjs;la ghjsd.hgj;asjhfdo;ijdsakl;f;jsakldjfkl;",test, sslHandler.getPublicKey());
   cout << _test << "\n";
   /*
   //connection initialization start

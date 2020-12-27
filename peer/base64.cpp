@@ -56,7 +56,7 @@ string decodeBase64(const string encodedString)
     {
       unsigned int nextNextChar = transform(encodedString[iter + 2]);
       decodedString.push_back(static_cast<string::value_type>(((nextChar & 0x0f) << 4) + ((nextNextChar & 0x3c) >> 2)));
-      if (encodedString[iter + 3] != '=' && encodedString[iter + 3] != '.')
+      if (encodedString[iter + 3] != '=')
       {
         decodedString.push_back(static_cast<string::value_type>(((nextNextChar & 0x03) << 6) + transform(encodedString[iter + 3])));
       }
