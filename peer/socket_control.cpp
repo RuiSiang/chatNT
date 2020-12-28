@@ -80,23 +80,30 @@ int SocketControl::bind(char ip[100], int port)
 
 string SocketControl::sendCommand(string sendString)
 {
-  char sendData[CHUNK_SIZE], receiveData[CHUNK_SIZE];
+
+  char sendData[CHUNK_SIZE];
   int iter = 0;
-  while (iter * CHUNK_SIZE < sendString.length())
+  while (iter * (CHUNK_SIZE - 1) < sendString.length())
   {
-    string substring = sendString.substr(iter * CHUNK_SIZE, CHUNK_SIZE);
-    memset(sendData, '\0', sizeof(sendData));
-    strncpy(sendData, sendString.c_str(), substring.length());
-    send(socketDescriptor, sendData, sizeof(sendData), 0);
+    string substring = sendString.substr(iter * (CHUNK_SIZE - 1), (CHUNK_SIZE - 1));
+    memset(sendData, '\0', CHUNK_SIZE);
+    strncpy(sendData, substring.c_str(), substring.length());
+    send(socketDescriptor, sendData, CHUNK_SIZE, 0);
     iter++;
   }
+
+  char receiveData[CHUNK_SIZE];
   string receiveString = "";
   while (true)
   {
     memset(receiveData, '\0', sizeof(receiveData));
-    recv(socketDescriptor, receiveData, sizeof(receiveData), 0);
+    int recvErr = recv(socketDescriptor, receiveData, sizeof(receiveData), 0);
+    if (recvErr < 0)
+    {
+      return "SIGFAULT";
+    }
     receiveString += string(receiveData);
-    if (string(receiveData).length() < CHUNK_SIZE)
+    if (string(receiveData).length() < CHUNK_SIZE - 1)
     {
       break;
     }

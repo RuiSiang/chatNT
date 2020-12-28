@@ -57,7 +57,6 @@ HandlerThread::~HandlerThread()
 
 int HandlerThread::process(string receiveString)
 {
-  info(receiveString + "asdf");
   return 0;
 }
 
@@ -74,7 +73,7 @@ string HandlerThread::receiveMessage(void)
       return "SIGFAULT";
     }
     receiveString += string(receiveData);
-    if (string(receiveData).length() < CHUNK_SIZE)
+    if (string(receiveData).length() < CHUNK_SIZE - 1)
     {
       break;
     }
@@ -86,12 +85,12 @@ void HandlerThread::sendMessage(string sendString)
 {
   char sendData[CHUNK_SIZE];
   int iter = 0;
-  while (iter * CHUNK_SIZE < sendString.length())
+  while (iter * (CHUNK_SIZE - 1) < sendString.length())
   {
-    string substring = sendString.substr(iter * CHUNK_SIZE, CHUNK_SIZE);
-    memset(sendData, '\0', sizeof(sendData));
+    string substring = sendString.substr(iter * (CHUNK_SIZE - 1), (CHUNK_SIZE - 1));
+    memset(sendData, '\0', CHUNK_SIZE);
     strncpy(sendData, substring.c_str(), substring.length());
-    send(threadSocketDescriptor, sendData, sizeof(sendData), 0);
+    send(threadSocketDescriptor, sendData, CHUNK_SIZE, 0);
     iter++;
   }
 }

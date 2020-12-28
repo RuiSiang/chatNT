@@ -6,7 +6,7 @@
 #include <string>
 #include "logger.h"
 
-struct Dataset
+struct User
 {
     std::string hashId;
     std::string ip;
@@ -21,7 +21,7 @@ public:
 
 private:
     int listenerSocketDescriptor;
-    std::vector<Dataset> dataset;
+    std::vector<User> user;
 };
 
 #endif

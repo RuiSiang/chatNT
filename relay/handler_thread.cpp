@@ -4,6 +4,7 @@
 #include <cstring>
 #include <thread>
 #include <unistd.h>
+#include <iostream>
 #include <sys/types.h>
 
 #define CHUNK_SIZE 1024
@@ -35,10 +36,18 @@ void HandlerThread::handler()
     }
     else
     {
-      break;  
+      break;
     }
   }
-  info("Thread " + to_string(threadSocketDescriptor) + " terminated\n");
+  for (unsigned int i = 0; i < user->size(); i++)
+  {
+    if (user->at(i).hashId == hashId)
+    {
+      user->erase(user->begin() + i);
+      break;
+    }
+  }
+  info("Thread " + to_string(threadSocketDescriptor) + "with hash id: " + hashId + " terminated\n");
   close(threadSocketDescriptor);
 
   delete this;
@@ -57,11 +66,11 @@ int HandlerThread::process(string receiveString)
   if (segments[0] == "EXIT")
   {
     sendMessage("Bye");
-    for (int i = 0; i < dataset->size(); i++)
+    for (unsigned int i = 0; i < user->size(); i++)
     {
-      if (dataset->at(i).hashId == hashId)
+      if (user->at(i).hashId == hashId)
       {
-        dataset->erase(dataset->begin() + i);
+        user->erase(user->begin() + i);
         break;
       }
     }
@@ -69,25 +78,25 @@ int HandlerThread::process(string receiveString)
   }
   else if (segments[0] == "REGISTER")
   {
-    Dataset tmp;
+    User tmp;
     tmp.hashId = segments[1];
     hashId = segments[1];
     tmp.ip = ip;
     tmp.port = stoi(segments[2]);
     tmp.publicKey = segments[3];
-    dataset->push_back(tmp);
+    user->push_back(tmp);
     sendMessage("Register Successful");
   }
   else if (segments[0] == "LIST")
   {
     string dataString = "";
-    for (int i = 0; i < dataset->size(); i++)
+    for (unsigned int i = 0; i < user->size(); i++)
     {
       if (i != 0)
       {
         dataString += "#";
       }
-      dataString += dataset->at(i).hashId + "#" + dataset->at(i).ip + "#" + to_string(dataset->at(i).port) + "#" + dataset->at(i).publicKey;
+      dataString += user->at(i).hashId + "#" + user->at(i).ip + "#" + to_string(user->at(i).port) + "#" + user->at(i).publicKey;
     }
     sendMessage(dataString);
   }
@@ -107,7 +116,7 @@ string HandlerThread::receiveMessage(void)
       return "SIGFAULT";
     }
     receiveString += string(receiveData);
-    if (string(receiveData).length() < CHUNK_SIZE)
+    if (string(receiveData).length() < CHUNK_SIZE - 1)
     {
       break;
     }
@@ -119,12 +128,12 @@ void HandlerThread::sendMessage(string sendString)
 {
   char sendData[CHUNK_SIZE];
   int iter = 0;
-  while (iter * CHUNK_SIZE < sendString.length())
+  while (iter * (CHUNK_SIZE - 1) < sendString.length())
   {
-    string substring = sendString.substr(iter * CHUNK_SIZE, CHUNK_SIZE);
-    memset(sendData, '\0', sizeof(sendData));
+    string substring = sendString.substr(iter * (CHUNK_SIZE - 1), (CHUNK_SIZE - 1));
+    memset(sendData, '\0', CHUNK_SIZE);
     strncpy(sendData, substring.c_str(), substring.length());
-    send(threadSocketDescriptor, sendData, sizeof(sendData), 0);
+    send(threadSocketDescriptor, sendData, CHUNK_SIZE, 0);
     iter++;
   }
 }

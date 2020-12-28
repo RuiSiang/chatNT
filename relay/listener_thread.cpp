@@ -53,7 +53,7 @@ ListenerThread::ListenerThread(int port)
 void ListenerThread::startListen(int listenerNum)
 {
   listen(listenerSocketDescriptor, listenerNum);
-  dataset.clear();
+  user.clear();
   while (true)
   {
     struct sockaddr_in incomingClientInfo;
@@ -64,7 +64,7 @@ void ListenerThread::startListen(int listenerNum)
       break;
     }
     info("Incoming request assigned with thread descriptor " + to_string(incomingClientSocketDescriptor) + " (originated from ip: " + inet_ntoa(incomingClientInfo.sin_addr) + ", port: " + to_string(ntohs(incomingClientInfo.sin_port)) + ")\n");
-    HandlerThread *newThread = new HandlerThread(incomingClientSocketDescriptor, &dataset, string(inet_ntoa(incomingClientInfo.sin_addr)));
+    HandlerThread *newThread = new HandlerThread(incomingClientSocketDescriptor, &user, string(inet_ntoa(incomingClientInfo.sin_addr)));
     thread sth(&HandlerThread::handler, newThread);
     sth.detach();    
   }

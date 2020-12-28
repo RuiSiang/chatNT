@@ -7,8 +7,8 @@ CFLAGS = -Wall -Wextra -g -std=c++14
 PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib
 
 #runner
-peer: peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o
-	$(CC) peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o -o bin/peer $(PFLAGS)
+peer: peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o
+	$(CC) peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o -o bin/peer $(PFLAGS)
 
 peer.o: peer.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c peer.cpp
@@ -31,6 +31,9 @@ ssl_handler.o: ssl_handler.cpp ssl_handler.h
 base64.o: base64.cpp base64.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c base64.cpp
 
+peer_control.o: peer_control.cpp peer_control.h
+	$(CC) $(INCLUDE) $(CFLAGS) -c peer_control.cpp
+
 clean:
 	rm -f peer.o
 	rm -f listener_thread.o
@@ -39,3 +42,4 @@ clean:
 	rm -f logger.o
 	rm -f ssl_handler.o
 	rm -f base64.o
+	rm -f peer_control.o

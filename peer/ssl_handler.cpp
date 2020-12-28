@@ -106,7 +106,7 @@ string SslHandler::decryptMessage(string encryptedMessageEncoded)
 
   string decryptedMessage = "";
 
-  for (int i = 0; i < encryptedBlocks.size(); i++)
+  for (unsigned int i = 0; i < encryptedBlocks.size(); i++)
   {
     string encryptedBlock = decodeBase64(encryptedBlocks[i]);
 

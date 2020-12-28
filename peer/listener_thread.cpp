@@ -66,7 +66,7 @@ void ListenerThread::startListen()
     {
       break;
     }
-    info("Incoming request assigned with descriptor " + to_string(incomingClientSocketDescriptor) + " ");
+    info("Incoming request assigned with descriptor " + to_string(incomingClientSocketDescriptor) + "\n");
     info("(originated from ip: " + string(inet_ntoa(incomingClientInfo.sin_addr)) + ", port: " + to_string(ntohs(incomingClientInfo.sin_port)) + ")\n");
 
     HandlerThread *newThread = new HandlerThread(incomingClientSocketDescriptor, mainSocketControl);
