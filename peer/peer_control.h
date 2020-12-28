@@ -9,29 +9,27 @@
 #include <string>
 #include <thread>
 
-struct User
-{
-  std::string hashId;
-  std::string ip;
-  int port;
-  std::string publicKey;
-};
-
 class PeerControl
 {
 public:
   PeerControl(char[100], unsigned int);
   ~PeerControl();
   void terminate();
-  std::vector<User> getList();
+  void updateList(void);
+  User getUser(std::string);
+  bool userExists(std::string);
+  bool formPacketandSend(std::string, std::string);
+  std::vector<User> getList() { return userList; }
+  std::vector<Message> getMessages() { return messages; }
 
 private:
   SocketControl *mainSocketControl;
   ListenerThread *masterListenThread;
   SslHandler sslHandler;
   std::vector<User> userList;
-  void updateList(void);
   std::thread _thread;
+  std::vector<Message> messages;
+  std::string sendMessage(std::string, char[100], short);
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <openssl/pem.h>
 #include <string>
 
+std::string sha256(std::string);
 class SslHandler
 {
 public:

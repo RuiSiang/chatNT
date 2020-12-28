@@ -1,7 +1,6 @@
 #include "listener_thread.h"
 #include "handler_thread.h"
 
-#include <iostream>
 #include <cstring>
 #include <thread>
 #include <unistd.h>

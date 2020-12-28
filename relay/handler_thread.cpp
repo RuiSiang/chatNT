@@ -4,7 +4,6 @@
 #include <cstring>
 #include <thread>
 #include <unistd.h>
-#include <iostream>
 #include <sys/types.h>
 
 #define CHUNK_SIZE 1024
@@ -47,7 +46,7 @@ void HandlerThread::handler()
       break;
     }
   }
-  info("Thread " + to_string(threadSocketDescriptor) + "with hash id: " + hashId + " terminated\n");
+  info("Thread " + to_string(threadSocketDescriptor) + " with hash id: " + hashId + " terminated\n");
   close(threadSocketDescriptor);
 
   delete this;

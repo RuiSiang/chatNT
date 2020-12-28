@@ -1,9 +1,7 @@
 #include "socket_control.h"
 #include "logger.h"
 
-#include <iostream>
 #include <cstring>
-#include <iomanip>
 #include <vector>
 #include <thread>
 #include <unistd.h>
