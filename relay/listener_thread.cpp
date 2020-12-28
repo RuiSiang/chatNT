@@ -16,9 +16,10 @@
 
 using namespace std;
 
+//constructor
 ListenerThread::ListenerThread(int port)
 {
-  //socket initialization start
+  //socket initialization
   listenerSocketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
   if (listenerSocketDescriptor == -1)
   {
@@ -29,9 +30,8 @@ ListenerThread::ListenerThread(int port)
   {
     info("Listener Established\n");
   }
-  //socket initialization end
 
-  //connection initialization start
+  //connection initialization
   struct sockaddr_in listenerInfo;
   memset(&listenerInfo, 0, sizeof(listenerInfo));
   listenerInfo.sin_family = PF_INET;
@@ -47,14 +47,16 @@ ListenerThread::ListenerThread(int port)
   {
     info("Binded on port " + to_string(port) + "\n");
   }
-  //connection initialization end
 }
+
+//starts listening for incoming conenctions
 void ListenerThread::startListen(int listenerNum)
 {
   listen(listenerSocketDescriptor, listenerNum);
   user.clear();
   while (true)
   {
+    //accept incoming connection
     struct sockaddr_in incomingClientInfo;
     int infoSize = sizeof(incomingClientInfo);
     int incomingClientSocketDescriptor = accept(listenerSocketDescriptor, (struct sockaddr *)&incomingClientInfo, &infoSize);
@@ -62,6 +64,8 @@ void ListenerThread::startListen(int listenerNum)
     {
       break;
     }
+
+    //assign handler thread to incoming connection
     info("Incoming request assigned with thread descriptor " + to_string(incomingClientSocketDescriptor) + " (originated from ip: " + inet_ntoa(incomingClientInfo.sin_addr) + ", port: " + to_string(ntohs(incomingClientInfo.sin_port)) + ")\n");
     HandlerThread *newThread = new HandlerThread(incomingClientSocketDescriptor, &user, string(inet_ntoa(incomingClientInfo.sin_addr)));
     thread sth(&HandlerThread::handler, newThread);

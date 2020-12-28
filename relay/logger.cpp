@@ -3,6 +3,7 @@
 
 using namespace std;
 
+//log error message
 void error(string message)
 {
   //ofstream fout("error.log", ofstream::app);
@@ -11,6 +12,7 @@ void error(string message)
   cout << "***Error*** " << message;
 }
 
+//log information message
 void info(string message)
 {
   //ofstream fout("info.log", ofstream::app);

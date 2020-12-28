@@ -4,7 +4,10 @@
 
 using namespace std;
 
+//define charset
 static const char *charSet = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
+
+//transform charset back to short
 static unsigned int transform(const unsigned char character)
 {
   if (character >= 'A' && character <= 'Z')
@@ -20,6 +23,7 @@ static unsigned int transform(const unsigned char character)
   return 0;
 }
 
+//encode unsigned char array to base64 string
 string encodeBase64(unsigned char *bytes, int bytesLength)
 {
   string encodedString;
@@ -37,6 +41,7 @@ string encodeBase64(unsigned char *bytes, int bytesLength)
   return encodedString;
 }
 
+//decode base64 string to string
 string decodeBase64(const string encodedString)
 {
   if (encodedString.empty())

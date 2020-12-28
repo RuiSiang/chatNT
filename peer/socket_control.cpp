@@ -19,8 +19,10 @@
 
 using namespace std;
 
+//checks if port is in use
 bool CheckPortTCP(short int testPort)
 {
+  //attempts to create socket and closes socket if successful
   struct sockaddr_in client;
   int testDescriptor = socket(AF_INET, SOCK_STREAM, 0);
   client.sin_family = AF_INET;
@@ -43,8 +45,10 @@ bool CheckPortTCP(short int testPort)
   }
 }
 
+//constructor
 SocketControl::SocketControl()
 {
+  //create socket
   socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
   if (socketDescriptor == -1)
   {
@@ -53,6 +57,7 @@ SocketControl::SocketControl()
   }
 }
 
+//bind socket ip and port
 int SocketControl::bind(char ip[100], int port)
 {
   struct sockaddr_in connectionInfo;
@@ -76,9 +81,10 @@ int SocketControl::bind(char ip[100], int port)
   }
 }
 
+//sends command with socket
 string SocketControl::sendCommand(string sendString)
 {
-
+  //sends data in chunks
   char sendData[CHUNK_SIZE];
   int iter = 0;
   while (iter * (CHUNK_SIZE - 1) < sendString.length())
@@ -90,6 +96,7 @@ string SocketControl::sendCommand(string sendString)
     iter++;
   }
 
+  //receives data in chunks
   char receiveData[CHUNK_SIZE];
   string receiveString = "";
   while (true)
@@ -109,6 +116,7 @@ string SocketControl::sendCommand(string sendString)
   return receiveString;
 }
 
+//destructor
 SocketControl::~SocketControl()
 {
   closesocket(socketDescriptor);

@@ -3,18 +3,19 @@
 #define SOCKET_CONTROL_H
 
 #include <string>
+
+//socket controller for active socket connections
 class SocketControl
 {
 public:
-  SocketControl();
-  ~SocketControl();
-  int bind(char[], int);
-  std::string sendCommand(std::string);
-  //void terminate();
+  SocketControl(); //constructor
+  ~SocketControl(); //destructor
+  int bind(char[], int); //bind socket to ip, port
+  std::string sendCommand(std::string); //send command with socket
 
 private:
-  int socketDescriptor;
+  int socketDescriptor; //socket file descriptor
 };
-bool CheckPortTCP(short int);
+bool CheckPortTCP(short int); //test if port is in use
 
 #endif

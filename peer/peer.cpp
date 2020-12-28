@@ -13,9 +13,10 @@
 
 using namespace std;
 
+//test driver program
 int main(int argc, char *argv[])
 {
-  //initialization start
+  //initialization
   char ip[100];
   unsigned int port;
   cout << "Please input relay server IP (v4): ";
@@ -24,9 +25,8 @@ int main(int argc, char *argv[])
   cin >> port;
 
   PeerControl *peerControl = new PeerControl(ip, port);
-  //initialization end
 
-  //functionals start
+  //functionals
   while (true)
   {
     string command;
@@ -97,11 +97,9 @@ int main(int argc, char *argv[])
       cout << "================================================================\n";
     }
   }
-  //functionals end
 
-  //closing start
+  //closing
   delete peerControl;
-  //closeing end
 
   return 0;
 }

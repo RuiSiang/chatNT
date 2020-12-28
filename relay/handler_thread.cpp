@@ -18,6 +18,7 @@
 
 using namespace std;
 
+//main handler for thread
 void HandlerThread::handler()
 {
   string sendString, receiveString;
@@ -52,8 +53,10 @@ void HandlerThread::handler()
   delete this;
 }
 
+//processor for received data
 int HandlerThread::process(string receiveString)
 {
+  //segmentalize received data
   stringstream receiveStream(receiveString);
   string segment;
   vector<string> segments;
@@ -62,6 +65,8 @@ int HandlerThread::process(string receiveString)
   {
     segments.push_back(segment);
   }
+
+  //read command and do corresponding actions
   if (segments[0] == "EXIT")
   {
     sendMessage("Bye");
@@ -77,6 +82,7 @@ int HandlerThread::process(string receiveString)
   }
   else if (segments[0] == "REGISTER")
   {
+    //add user to user list
     User tmp;
     tmp.hashId = segments[1];
     hashId = segments[1];
@@ -88,6 +94,7 @@ int HandlerThread::process(string receiveString)
   }
   else if (segments[0] == "LIST")
   {
+    //return stringified user list
     string dataString = "";
     for (unsigned int i = 0; i < user->size(); i++)
     {
@@ -102,8 +109,10 @@ int HandlerThread::process(string receiveString)
   return 0;
 }
 
-string HandlerThread::receiveMessage(void)
+//wait to receive data and returns received data
+string HandlerThread::receiveMessage()
 {
+  //receive data in chunks
   char receiveData[CHUNK_SIZE];
   string receiveString = "";
   while (true)
@@ -123,8 +132,10 @@ string HandlerThread::receiveMessage(void)
   return receiveString;
 }
 
+//send data with socket
 void HandlerThread::sendMessage(string sendString)
 {
+  //send data in chunks
   char sendData[CHUNK_SIZE];
   int iter = 0;
   while (iter * (CHUNK_SIZE - 1) < sendString.length())

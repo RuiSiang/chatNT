@@ -6,6 +6,7 @@
 #include <string>
 #include "logger.h"
 
+//structure to save user information
 struct User
 {
     std::string hashId;
@@ -13,15 +14,17 @@ struct User
     int port;
     std::string publicKey;
 };
+
+//master socket thread to establish and assign parallel threads
 class ListenerThread
 {
 public:
-    ListenerThread(int);
-    void startListen(int);
+    ListenerThread(int); //constructor
+    void startListen(int); //start listening for incoming connections
 
 private:
-    int listenerSocketDescriptor;
-    std::vector<User> user;
+    int listenerSocketDescriptor; //socket file descriptor for master listener
+    std::vector<User> user; //saves user list
 };
 
 #endif

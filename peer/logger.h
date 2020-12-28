@@ -4,7 +4,7 @@
 
 #include<string>
 
-void error(std::string);
-void info(std::string);
+void error(std::string); //logs error messages
+void info(std::string); //logs information messages
 
 #endif

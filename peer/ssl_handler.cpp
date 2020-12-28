@@ -10,6 +10,7 @@
 
 using namespace std;
 
+//generates sha256 digest
 string sha256(string str)
 {
   unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -27,6 +28,7 @@ string sha256(string str)
   return string(buffer);
 }
 
+//constructor
 SslHandler::SslHandler()
 {
   // create RSA 4096 keypair
@@ -38,7 +40,7 @@ SslHandler::SslHandler()
   EVP_PKEY_CTX_free(keyCtx);
   info("Key generation successful\n");
 
-  // extract private key
+  // save private key
   BIO *privateKeyBio = BIO_new(BIO_s_mem());
   PEM_write_bio_PrivateKey(privateKeyBio, key, NULL, NULL, 0, 0, NULL);
   int privateKeyLength = BIO_pending(privateKeyBio);
@@ -60,18 +62,21 @@ SslHandler::SslHandler()
   BIO_free_all(publicKeyBio);
 }
 
+//encrypt message
 string SslHandler::encryptMessage(string message, string publicKey)
 {
+  //read public key
   BIO *bio = BIO_new_mem_buf((void *)publicKey.c_str(), -1);
   RSA *publicRsa = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
   BIO_free_all(bio);
 
+  //calculates limits
   int rsaLengthLimit = RSA_size(publicRsa);
   int blockLength = rsaLengthLimit - 11;
 
+  //encrypts message in chunks with public key
   int iter = 0;
   string encryptedMessage = "";
-
   while (iter * blockLength < message.length())
   {
     string substring = message.substr(iter * blockLength, blockLength);
@@ -91,10 +96,12 @@ string SslHandler::encryptMessage(string message, string publicKey)
   return encryptedMessage;
 }
 
+//decrypt message
 string SslHandler::decryptMessage(string encryptedMessageEncoded)
 {
   int rsaLengthLimit = RSA_size(privateKey);
 
+  //segmentalize encoded string
   stringstream encryptedBlockStream(encryptedMessageEncoded);
   string segment;
   vector<string> encryptedBlocks;
@@ -104,12 +111,11 @@ string SslHandler::decryptMessage(string encryptedMessageEncoded)
     encryptedBlocks.push_back(segment);
   }
 
+  //decrypts message in chunks with private key
   string decryptedMessage = "";
-
   for (unsigned int i = 0; i < encryptedBlocks.size(); i++)
   {
     string encryptedBlock = decodeBase64(encryptedBlocks[i]);
-
     unsigned char *decryptedBlock = new unsigned char[rsaLengthLimit];
     memset(decryptedBlock, '\0', rsaLengthLimit);
     RSA_private_decrypt(rsaLengthLimit, (unsigned char *)encryptedBlock.c_str(), decryptedBlock, privateKey, RSA_PKCS1_PADDING);
@@ -119,13 +125,17 @@ string SslHandler::decryptMessage(string encryptedMessageEncoded)
   return decryptedMessage;
 }
 
+//sign message
 string SslHandler::signMessage(string message)
 {
+  //calculate limits
   int rsaLengthLimit = RSA_size(privateKey);
   int blockLength = rsaLengthLimit - 11;
 
+  //generate sha256 digest
   string messageHash = sha256(message);
 
+  //encrypt digest with private key
   unsigned char *block = (unsigned char *)malloc(rsaLengthLimit);
   memset(block, 0, rsaLengthLimit);
   RSA_private_encrypt(blockLength, (unsigned char *)messageHash.c_str(), block, privateKey, RSA_PKCS1_PADDING);
@@ -133,21 +143,27 @@ string SslHandler::signMessage(string message)
   return encodeBase64(block, rsaLengthLimit);
 }
 
+//verify signature
 bool SslHandler::verifyMessage(string message, string encodedSignature, string publicKey)
 {
+  //read publi ckey
   BIO *bio = BIO_new_mem_buf((void *)publicKey.c_str(), -1);
   RSA *publicRsa = PEM_read_bio_RSA_PUBKEY(bio, NULL, NULL, NULL);
   BIO_free_all(bio);
 
+  //calculate limits
   int rsaLengthLimit = RSA_size(publicRsa);
 
+  //generate sha256 digest
   string messageHash = sha256(message);
 
+  //decrypt digest with public key
   string signature = decodeBase64(encodedSignature);
-
   unsigned char *decryptedBlock = new unsigned char[rsaLengthLimit];
   memset(decryptedBlock, '\0', rsaLengthLimit);
   RSA_public_decrypt(rsaLengthLimit, (unsigned char *)signature.c_str(), decryptedBlock, publicRsa, RSA_PKCS1_PADDING);
   string verification = string((char *)decryptedBlock);
+
+  //return comparison result
   return verification == messageHash;
 }

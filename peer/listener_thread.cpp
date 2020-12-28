@@ -17,10 +17,10 @@
 
 using namespace std;
 
+//constructor
 ListenerThread::ListenerThread(int port, SocketControl *_mainsocketControl, SslHandler *_sslHandler, std::vector<User> *_userList, std::vector<Message> *_messages)
 {
-  //socket initialization start
-
+  //socket initialization
   mainSocketControl = _mainsocketControl;
   sslHandler = _sslHandler;
   userList = _userList;
@@ -35,9 +35,8 @@ ListenerThread::ListenerThread(int port, SocketControl *_mainsocketControl, SslH
   {
     info("Listener Established\n");
   }
-  //socket initialization end
 
-  //connection initialization start
+  //connection initialization
   struct sockaddr_in listenerInfo;
   memset(&listenerInfo, 0, sizeof(listenerInfo));
   listenerInfo.sin_family = PF_INET;
@@ -53,8 +52,9 @@ ListenerThread::ListenerThread(int port, SocketControl *_mainsocketControl, SslH
   {
     info("Binded on port " + to_string(port) + "\n");
   }
-  //connection initialization end
 }
+
+//starts listening for incoming connections
 void ListenerThread::startListen()
 {
   listen(listenerSocketDescriptor, LISTENER_NUM);
@@ -62,6 +62,8 @@ void ListenerThread::startListen()
   {
     struct sockaddr_in incomingClientInfo;
     int infoSize = sizeof(incomingClientInfo);
+
+    //accepts incoming connection
     int incomingClientSocketDescriptor = accept(listenerSocketDescriptor, (struct sockaddr *)&incomingClientInfo, &infoSize);
     if (incomingClientSocketDescriptor <= 0)
     {
@@ -70,6 +72,7 @@ void ListenerThread::startListen()
     info("Incoming request assigned with descriptor " + to_string(incomingClientSocketDescriptor) + "\n");
     info("(originated from ip: " + string(inet_ntoa(incomingClientInfo.sin_addr)) + ", port: " + to_string(ntohs(incomingClientInfo.sin_port)) + ")\n");
 
+    //creates and assigns a new thread to handle the incoming connection
     HandlerThread *newThread = new HandlerThread(incomingClientSocketDescriptor, mainSocketControl, sslHandler, userList, messages);
     thread sth(&HandlerThread::handler, newThread);
     sth.detach();
@@ -77,6 +80,7 @@ void ListenerThread::startListen()
   delete this;
 }
 
+//destructor
 ListenerThread::~ListenerThread()
 {
   closesocket(listenerSocketDescriptor);

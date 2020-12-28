@@ -18,6 +18,7 @@
 
 using namespace std;
 
+//main handler for thread
 void HandlerThread::handler()
 {
   string sendString, receiveString;
@@ -43,15 +44,18 @@ void HandlerThread::handler()
   delete this;
 }
 
+//destructor
 HandlerThread::~HandlerThread()
 {
   closesocket(threadSocketDescriptor);
 }
 
+//processor for received data
 int HandlerThread::process(string receiveString)
 {
   if (receiveString != "")
   {
+    //incoming data segmentalization
     stringstream receiveStream(receiveString);
     string segment;
     vector<string> segments;
@@ -60,10 +64,16 @@ int HandlerThread::process(string receiveString)
     {
       segments.push_back(segment);
     }
+
     info("Retransmitting packet with tag " + segments[0] + "\n");
+
+    //ensure newest user list is attained
     updateList();
+
+    //evaluate command and undergo corresponding actions
     if (segments[0] == "P1")
     {
+      //evaluates information validity
       string peer2HashId = sslHandler->decryptMessage(segments[1]);
       if (!userExists(peer2HashId))
       {
@@ -76,6 +86,8 @@ int HandlerThread::process(string receiveString)
         sendMessage("SIGFAULT");
         return 0;
       }
+
+      //send peer2 and peer3 sections to p2
       bool sendResult = sendMessage("P2%" + segments[2] + "%" + segments[3], (char *)peer2.ip.c_str(), peer2.port) == "SIGFAULT";
       if (!sendResult)
       {
@@ -88,6 +100,7 @@ int HandlerThread::process(string receiveString)
     }
     else if (segments[0] == "P2")
     {
+      //validates information validity
       string peer3HashId = sslHandler->decryptMessage(segments[1]);
       if (!userExists(peer3HashId))
       {
@@ -100,6 +113,8 @@ int HandlerThread::process(string receiveString)
         sendMessage("SIGFAULT");
         return 0;
       }
+
+      //send peer3 section to p3
       bool sendResult = sendMessage("P3%" + segments[2], (char *)peer3.ip.c_str(), peer3.port) == "SIGFAULT";
       if (!sendResult)
       {
@@ -112,6 +127,7 @@ int HandlerThread::process(string receiveString)
     }
     else if (segments[0] == "P3")
     {
+      //decrypt and segmentalize peer3 section
       string peer3Section = sslHandler->decryptMessage(segments[1]);
       stringstream peer3SectionStream(peer3Section);
       string block;
@@ -121,6 +137,8 @@ int HandlerThread::process(string receiveString)
       {
         blocks.push_back(block);
       }
+
+      //evaluates information validity
       string receiverHashId = blocks[0];
       if (!userExists(receiverHashId))
       {
@@ -128,6 +146,8 @@ int HandlerThread::process(string receiveString)
         return 0;
       }
       User receiver = getUser(receiverHashId);
+
+      //send secret packet to receiver
       bool sendResult = sendMessage("R%" + blocks[1], (char *)receiver.ip.c_str(), receiver.port) == "SIGFAULT";
       if (!sendResult)
       {
@@ -140,6 +160,7 @@ int HandlerThread::process(string receiveString)
     }
     else if (segments[0] == "R")
     {
+      //decrypt and segmentalize secret packet
       string secretPacket = sslHandler->decryptMessage(segments[1]);
       stringstream secretPacketStream(secretPacket);
       string block;
@@ -149,6 +170,8 @@ int HandlerThread::process(string receiveString)
       {
         blocks.push_back(block);
       }
+
+      //evaluated information validity
       string senderHashId = blocks[0];
       if (!userExists(senderHashId))
       {
@@ -156,6 +179,8 @@ int HandlerThread::process(string receiveString)
         return 0;
       }
       User sender = getUser(senderHashId);
+
+      //validates signature and saves message object if signature check passes
       bool validSignature = sslHandler->verifyMessage(blocks[1], blocks[2], sender.publicKey);
       if (validSignature)
       {
@@ -174,8 +199,10 @@ int HandlerThread::process(string receiveString)
   return 0;
 }
 
-string HandlerThread::receiveMessage(void)
+//wait for data and return received string
+string HandlerThread::receiveMessage()
 {
+  //receives data in chunks and collects into a string to return
   char receiveData[CHUNK_SIZE];
   string receiveString = "";
   while (true)
@@ -195,8 +222,10 @@ string HandlerThread::receiveMessage(void)
   return receiveString;
 }
 
+//send data to relay server
 void HandlerThread::sendMessage(string sendString)
 {
+  //sends data in chunks
   char sendData[CHUNK_SIZE];
   int iter = 0;
   while (iter * (CHUNK_SIZE - 1) < sendString.length())
@@ -209,6 +238,7 @@ void HandlerThread::sendMessage(string sendString)
   }
 }
 
+//send data to specified location
 string HandlerThread::sendMessage(string sendString, char ip[100], short port)
 {
   SocketControl *tmpSocketControl = new SocketControl;
@@ -220,6 +250,7 @@ string HandlerThread::sendMessage(string sendString, char ip[100], short port)
   return receiveString;
 }
 
+//get user object with hash id
 User HandlerThread::getUser(string hashId)
 {
   for (unsigned int i = 0; i < userList->size(); i++)
@@ -231,6 +262,7 @@ User HandlerThread::getUser(string hashId)
   }
 }
 
+//checks if user with specified hash id exists
 bool HandlerThread::userExists(string hashId)
 {
   for (unsigned int i = 0; i < userList->size(); i++)
@@ -243,10 +275,14 @@ bool HandlerThread::userExists(string hashId)
   return false;
 }
 
-void HandlerThread::updateList(void)
+//sync user list from relay server
+void HandlerThread::updateList()
 {
+  //sends LIST call to relay server
   string sendString = "LIST";
   string receiveString = mainSocketControl->sendCommand(sendString);
+
+  //segmentalizes response
   stringstream receiveStream(receiveString);
   string segment;
   vector<string> segments;
@@ -255,6 +291,8 @@ void HandlerThread::updateList(void)
   {
     segments.push_back(segment);
   }
+
+  //saves to userList object
   userList->clear();
   for (unsigned int i = 0; i < segments.size(); i += 4)
   {
