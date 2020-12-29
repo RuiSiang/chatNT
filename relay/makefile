@@ -4,7 +4,13 @@ all: relay clean
 CC = g++
 INCLUDE = .
 CFLAGS = -Wall -Wextra -ansi -g -std=c++14
-PFLAGS = -lpthread -lws2_32
+ifdef OS
+   PFLAGS = -lpthread -lws2_32
+else
+   ifeq ($(shell uname), Linux)
+      PFLAGS = -lpthread
+   endif
+endif
 
 #runner
 relay: relay.o listener_thread.o handler_thread.o logger.o

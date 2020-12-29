@@ -40,7 +40,11 @@ bool CheckPortTCP(short int testPort)
   }
   else
   {
+#ifdef __linux__
+    close(testtDescriptor);
+#elif _WIN32
     closesocket(testDescriptor);
+#endif
     return true;
   }
 }
@@ -119,5 +123,9 @@ string SocketControl::sendCommand(string sendString)
 //destructor
 SocketControl::~SocketControl()
 {
+#ifdef __linux__
+  close(socketDescriptor);
+#elif _WIN32
   closesocket(socketDescriptor);
+#endif
 }

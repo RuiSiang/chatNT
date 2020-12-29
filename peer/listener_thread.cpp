@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #elif _WIN32
 #include <WinSock2.h>
+typedef int socklen_t;
 #endif
 
 using namespace std;
@@ -60,10 +61,9 @@ void ListenerThread::startListen()
   listen(listenerSocketDescriptor, LISTENER_NUM);
   while (true)
   {
-    struct sockaddr_in incomingClientInfo;
-    int infoSize = sizeof(incomingClientInfo);
-
     //accepts incoming connection
+    struct sockaddr_in incomingClientInfo;
+    socklen_t infoSize = sizeof(incomingClientInfo);
     int incomingClientSocketDescriptor = accept(listenerSocketDescriptor, (struct sockaddr *)&incomingClientInfo, &infoSize);
     if (incomingClientSocketDescriptor <= 0)
     {
@@ -83,5 +83,9 @@ void ListenerThread::startListen()
 //destructor
 ListenerThread::~ListenerThread()
 {
+#ifdef __linux__
+  close(listenerSocketDescriptor);
+#elif _WIN32
   closesocket(listenerSocketDescriptor);
+#endif
 }

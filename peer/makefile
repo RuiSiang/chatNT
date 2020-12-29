@@ -4,7 +4,13 @@ all: peer clean
 CC = g++
 INCLUDE = -I. -I./include
 CFLAGS = -Wall -Wextra -g -std=c++14
-PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib
+ifdef OS
+   PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib
+else
+   ifeq ($(shell uname), Linux)
+      PFLAGS = -lpthread lib/libssl.lib lib/libcrypto.lib
+   endif
+endif
 
 #runner
 peer: peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o

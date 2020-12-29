@@ -47,7 +47,11 @@ void HandlerThread::handler()
 //destructor
 HandlerThread::~HandlerThread()
 {
+#ifdef __linux__
+  close(threadSocketDescriptor);
+#elif _WIN32
   closesocket(threadSocketDescriptor);
+#endif
 }
 
 //processor for received data
