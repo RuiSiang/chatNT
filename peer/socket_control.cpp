@@ -41,7 +41,7 @@ bool CheckPortTCP(short int testPort)
   else
   {
 #ifdef __linux__
-    close(testtDescriptor);
+    close(testDescriptor);
 #elif _WIN32
     closesocket(testDescriptor);
 #endif
