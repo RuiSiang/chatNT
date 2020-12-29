@@ -29,16 +29,7 @@ logger.o: logger.cpp logger.h
 	$(CC) -I$(INCLUDE) $(CFLAGS) -c logger.cpp
 
 clean:
-	ifdef OS
-		del /s relay.o
-		del /s listener_thread.o
-		del /s handler_thread.o
-		del /s logger.o
-	else
-		ifeq ($(shell uname), Linux)
-			rm -f relay.o
-			rm -f listener_thread.o
-			rm -f handler_thread.o
-			rm -f logger.o
-		endif
-	endif
+	rm -f relay.o
+	rm -f listener_thread.o
+	rm -f handler_thread.o
+	rm -f logger.o
