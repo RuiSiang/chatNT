@@ -1,0 +1,22 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, windows-2016]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make -C peer
+    - name: make
+      run: make -C relay
