@@ -5,7 +5,7 @@ CC = g++
 INCLUDE = .
 CFLAGS = -Wall -Wextra -ansi -g -std=c++14
 ifdef OS
-   PFLAGS = -lpthread -lws2_32
+   PFLAGS = -static -static-libgcc -static-libstdc++ -lpthread -lws2_32
 else
    ifeq ($(shell uname), Linux)
       PFLAGS = -lpthread
