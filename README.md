@@ -1,5 +1,7 @@
-# chatNT (chat Not Tracable)
-Anonymous p2p chatroom application in C++ based on onion relay concept.
+# chatNT
+![test-compiling CI](https://github.com/RuiSiang/chatNT/workflows/test-compiling%20CI/badge.svg)
+
+chat Not Tracable: Anonymous p2p chatroom application in C++ based on onion relay concept.
 
 ## Supported OS
 Windows and Linux (tested on windows-latest and ubuntu-latest)
