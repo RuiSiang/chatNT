@@ -5,10 +5,10 @@ CC = g++
 INCLUDE = -I. -I./include
 CFLAGS = -Wall -Wextra -g -std=c++14
 ifdef OS
-   PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lmingw32 -lSDL2main -lSDL2
+   PFLAGS = -static -static-libgcc -static-libstdc++ -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lSDL2main -lSDL2
 else
    ifeq ($(shell uname), Linux)
-      PFLAGS = -lpthread lib/libssl.lib lib/libcrypto.lib
+      PFLAGS = -static-libgcc -static-libstdc++ -L${CURDIR}/lib -lSDL2main -lSDL2 -lssl -lcrypto -lz -ldl -lpthread
    endif
 endif
 
@@ -49,3 +49,4 @@ clean:
 	rm -f ssl_handler.o
 	rm -f base64.o
 	rm -f peer_control.o
+	
