@@ -5,10 +5,10 @@ CC = g++
 INCLUDE = -I. -I./include
 CFLAGS = -Wall -Wextra -g -std=c++14
 ifdef OS
-   PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lmingw32 -lSDL2main -lSDL2
+   PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lSDL2main -lSDL2
 else
    ifeq ($(shell uname), Linux)
-      PFLAGS = -lpthread lib/libssl.lib lib/libcrypto.lib
+      PFLAGS = -lpthread lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lSDL2main -lSDL2
    endif
 endif
 
