@@ -41,11 +41,25 @@ peer_control.o: peer_control.cpp peer_control.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c peer_control.cpp
 
 clean:
-	rm -f peer.o
-	rm -f listener_thread.o
-	rm -f handler_thread.o
-	rm -f socket_control.o
-	rm -f logger.o
-	rm -f ssl_handler.o
-	rm -f base64.o
-	rm -f peer_control.o
+	ifdef OS
+		del /s peer.o
+		del /s listener_thread.o
+		del /s handler_thread.o
+		del /s socket_control.o
+		del /s logger.o
+		del /s ssl_handler.o
+		del /s base64.o
+		del /s peer_control.o
+	else
+		ifeq ($(shell uname), Linux)
+			rm -f peer.o
+			rm -f listener_thread.o
+			rm -f handler_thread.o
+			rm -f socket_control.o
+			rm -f logger.o
+			rm -f ssl_handler.o
+			rm -f base64.o
+			rm -f peer_control.o
+		endif
+	endif
+	
