@@ -29,12 +29,12 @@ bool CheckPortTCP(short int testPort)
   client.sin_port = htons(testPort);
   client.sin_addr.s_addr = inet_addr("127.0.0.1");
   testDescriptor = (int)socket(AF_INET, SOCK_STREAM, 0);
-  if (testDescriptor == INVALID_SOCKET)
+  if (testDescriptor == -1)
   {
     return false;
   }
   int result = connect(testDescriptor, (struct sockaddr *)&client, sizeof(client));
-  if (result == SOCKET_ERROR)
+  if (result == -1)
   {
     return false;
   }
