@@ -17,3 +17,9 @@ openssl, SDL2 (both already included in /include and /lib directories)
 make -C peer
 make -C relay
 ```
+
+## Run:
+```
+./relay/bin/relay
+./peer/bin/peer
+```
