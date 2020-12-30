@@ -6,7 +6,7 @@ chat Not Tracable: Anonymous p2p chatroom application in C++ based on onion rela
 ## Supported OS
 Windows and Linux (tested on windows-latest and ubuntu-latest)
 
-## Dependencies:
+## Dependencies (Compile):
 stdc++11, mingw64(windows) or build-essentials(linux), WinSock2.h(windows) or socket.h(linux), thread.h, zlib(linux)
 
 ## Libraries:
