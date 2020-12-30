@@ -8,7 +8,7 @@ ifdef OS
    PFLAGS = -static -static-libgcc -static-libstdc++ -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lSDL2main -lSDL2
 else
    ifeq ($(shell uname), Linux)
-      PFLAGS = -static -static-libgcc -static-libstdc++ -lpthread lib/libssl.lib lib/libcrypto.lib -L${CURDIR}/lib -lSDL2main -lSDL2
+      PFLAGS = -static-libgcc -static-libstdc++ -lpthread -L${CURDIR}/lib -lSDL2main -lSDL2 -lssl -lcrypto -lz -ldl
    endif
 endif
 
