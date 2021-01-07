@@ -22,6 +22,7 @@ PeerControl::PeerControl(char ip[100], unsigned int port)
   //initialize variables
   userList.clear();
   messages.clear();
+  hashId = sslHandler.getHashId();
 
   //create socket
   mainSocketControl = new SocketControl;
@@ -152,7 +153,8 @@ bool PeerControl::formPacketandSend(std::string receiverHashId, std::string mess
   if (!sendResult)
   {
     Message tmp;
-    tmp.hashId = receiverHashId;
+    tmp.receiver = receiverHashId;
+    tmp.sender = sslHandler.getHashId();
     tmp.message = message;
     messages.push_back(tmp);
     return 0;

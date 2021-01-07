@@ -188,10 +188,14 @@ int HandlerThread::process(string receiveString)
       bool validSignature = sslHandler->verifyMessage(blocks[1], blocks[2], sender.publicKey);
       if (validSignature)
       {
-        Message tmp;
-        tmp.hashId = sender.hashId;
-        tmp.message = blocks[1];
-        messages->push_back(tmp);
+        if (sender.hashId != sslHandler->getHashId())
+        {
+          Message tmp;
+          tmp.sender = sender.hashId;
+          tmp.receiver = sslHandler->getHashId();
+          tmp.message = blocks[1];
+          messages->push_back(tmp);
+        }
         sendMessage("SUCCESS");
       }
       else

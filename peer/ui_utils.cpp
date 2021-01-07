@@ -6,22 +6,21 @@ extern PeerControl *peerControl;
 FORM *connectionForm, *messageForm;
 MENU *userListMenu;
 FIELD *connectionFields[5], *messageFields[2];
-WINDOW *mainWindow, *connectionWindow, *messageWindow, *userListWindow;
+WINDOW *mainWindow, *connectionWindow, *connectionFormSubWin, *messageWindow, *messageFormSubWin, *userListMenuSubWin, *userListWindow, *helpWindow, *historyWindow, *historyPad;
 bool showUserMenu = 1;
-string friendHashId;
+string buddyHashId;
+int yMaxHistory, xMaxHistory;
+int padColumn = 0, padLines, padPositionY, padPositionX, maxMessageChars, currentMessageChars = 0;
 
 char *trim_whitespaces(char *str)
 {
   char *end;
-  while (isspace(*str))
-    str++;
   if (*str == 0)
     return str;
-  end = str + strnlen(str, 128) - 1;
-
-  while (end > str && isspace(*end))
+  end = str + strlen(str) - 1;
+  while (end > str && isspace((unsigned char)*end))
     end--;
-  *(end + 1) = '\0';
+  end[1] = '\0';
   return str;
 }
 
@@ -64,22 +63,42 @@ void messageDriver(int ch)
   case '\b':
   case KEY_BACKSPACE:
     if (!showUserMenu)
+    {
       form_driver(messageForm, REQ_DEL_PREV);
+      currentMessageChars = max(0, currentMessageChars - 1);
+    }
     break;
 
   case KEY_DOWN:
     if (showUserMenu)
       menu_driver(userListMenu, REQ_DOWN_ITEM);
+    else
+    {
+      padColumn++;
+      prefresh(historyPad, padColumn, 0, padPositionY, padPositionX, padPositionY + yMaxHistory - 3, padPositionX + xMaxHistory - 4);
+    }
     break;
 
   case KEY_UP:
     if (showUserMenu)
       menu_driver(userListMenu, REQ_UP_ITEM);
+    else
+    {
+      padColumn = max(padColumn - 1, 0);
+      prefresh(historyPad, padColumn, 0, padPositionY, padPositionX, padPositionY + yMaxHistory - 3, padPositionX + xMaxHistory - 4);
+    }
     break;
 
   default:
     if (!showUserMenu)
-      form_driver(messageForm, ch);
+    {
+      if (currentMessageChars < maxMessageChars)
+      {
+        form_driver(messageForm, ch);
+        currentMessageChars++;
+      }
+    }
+
     break;
   }
 
@@ -93,35 +112,70 @@ void initUI()
   start_color();
   cbreak();
   keypad(stdscr, TRUE);
+  init_pair(1, COLOR_BLACK, COLOR_WHITE);
+  init_pair(2, COLOR_WHITE, COLOR_BLUE);
 
-  init_pair(1, COLOR_BLUE, COLOR_WHITE);
-  init_pair(2, COLOR_BLUE, COLOR_RED);
+  wbkgd(stdscr, COLOR_PAIR(1));
 
   int yMax, xMax;
   getmaxyx(stdscr, yMax, xMax);
   mainWindow = newwin(yMax, xMax - 1, 0, 0);
   assert(mainWindow != NULL);
   box(mainWindow, 0, 0);
+  wbkgd(mainWindow, COLOR_PAIR(1));
 
   int yMaxMain, xMaxMain;
   getmaxyx(mainWindow, yMaxMain, xMaxMain);
-  connectionWindow = derwin(mainWindow, 10, int(xMaxMain * 0.3 - 4), 1, int(xMax * 0.7));
+
+  connectionWindow = derwin(mainWindow, 10, int(xMaxMain * 0.3 - 2), 1, int(xMax * 0.7));
   assert(connectionWindow != NULL);
   box(connectionWindow, 0, 0);
-  messageWindow = derwin(mainWindow, int(yMaxMain * 0.3 - 1), int(xMaxMain * 0.7 - 5), int(yMaxMain * 0.7), 4);
+  wbkgd(connectionWindow, COLOR_PAIR(1));
+
+  int yMaxConnection, xMaxConnection;
+  getmaxyx(connectionWindow, yMaxConnection, xMaxConnection);
+  connectionFormSubWin = derwin(connectionWindow, 5, int(xMaxConnection - 4), 2, 1);
+  assert(connectionFormSubWin != NULL);
+
+  messageWindow = derwin(mainWindow, int(yMaxMain * 0.3 - 1), int(xMaxMain * 0.7 - 3), int(yMaxMain * 0.7), 2);
   assert(messageWindow != NULL);
   box(messageWindow, 0, 0);
-  //wbkgd(messageWindow, COLOR_PAIR(1));
+  wbkgd(messageWindow, COLOR_PAIR(1));
+
+  int yMaxMessage, xMaxMessage;
+  getmaxyx(messageWindow, yMaxMessage, xMaxMessage);
+  messageFormSubWin = derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1);
+  userListMenuSubWin = derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1);
+  assert(userListMenuSubWin != NULL);
+
+  helpWindow = derwin(mainWindow, int(yMaxMain - 12), int(xMaxMain * 0.3 - 2), 11, int(xMax * 0.7));
+  assert(helpWindow != NULL);
+  box(helpWindow, 0, 0);
+
+  historyWindow = derwin(mainWindow, int(yMaxMain * 0.7 - 3), int(xMaxMain * 0.7 - 3), 3, 2);
+  assert(historyWindow != NULL);
+  box(historyWindow, 0, 0);
+  padPositionY = 4;
+  padPositionX = 4;
+  getmaxyx(historyWindow, yMaxHistory, xMaxHistory);
 
   mvwprintw(mainWindow, 1, 2, "chatNT - Anonymous Chatroom");
+  mvwprintw(helpWindow, 1, 2, "Help");
+  mvwprintw(helpWindow, 3, 2, "TAB   - toggle message /");
+  mvwprintw(helpWindow, 4, 2, "        user list");
+  mvwprintw(helpWindow, 5, 2, "Enter - send message /");
+  mvwprintw(helpWindow, 6, 2, "        select user");
+  mvwprintw(helpWindow, 7, 2, "Crl+e - exit program");
+  refresh();
 }
 
 void genConnectionForm()
 {
-  connectionFields[0] = new_field(1, 10, 0, 2, 0, 0);
-  connectionFields[1] = new_field(1, 20, 0, 7, 0, 0);
-  connectionFields[2] = new_field(1, 10, 3, 2, 0, 0);
-  connectionFields[3] = new_field(1, 20, 3, 7, 0, 0);
+  mvwprintw(connectionWindow, 1, 3, "Relay Server Info");
+  connectionFields[0] = new_field(1, 10, 1, 2, 0, 0);
+  connectionFields[1] = new_field(1, 20, 1, 7, 0, 0);
+  connectionFields[2] = new_field(1, 10, 2, 2, 0, 0);
+  connectionFields[3] = new_field(1, 20, 2, 7, 0, 0);
   mvwprintw(connectionWindow, 7, 3, "Press Tab to switch field");
   mvwprintw(connectionWindow, 8, 3, "Press Enter to submit");
   connectionFields[4] = NULL;
@@ -137,17 +191,18 @@ void genConnectionForm()
   set_field_opts(connectionFields[2], O_VISIBLE | O_PUBLIC | O_AUTOSKIP);
   set_field_opts(connectionFields[3], O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
 
-  set_field_back(connectionFields[1], A_UNDERLINE);
-  set_field_back(connectionFields[3], A_UNDERLINE);
+  set_field_back(connectionFields[0], COLOR_PAIR(1));
+  set_field_back(connectionFields[1], A_UNDERLINE | COLOR_PAIR(1));
+  set_field_back(connectionFields[2], COLOR_PAIR(1));
+  set_field_back(connectionFields[3], A_UNDERLINE | COLOR_PAIR(1));
+  set_field_type(connectionFields[1], TYPE_REGEXP, "\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b");
+  set_field_type(connectionFields[3], TYPE_INTEGER, 0, 1024, 65535);
 
   connectionForm = new_form(connectionFields);
   assert(connectionForm != NULL);
-  int yMaxConnection, xMaxConnection;
-  getmaxyx(connectionWindow, yMaxConnection, xMaxConnection);
-  set_form_sub(connectionForm, derwin(connectionWindow, 6, int(xMaxConnection - 4), 1, 1));
+  set_form_sub(connectionForm, connectionFormSubWin);
   post_form(connectionForm);
 
-  refresh();
   wrefresh(mainWindow);
   wrefresh(connectionWindow);
 }
@@ -157,20 +212,20 @@ void genMessageForm()
   int yMaxMessage, xMaxMessage;
   getmaxyx(messageWindow, yMaxMessage, xMaxMessage);
 
-  messageFields[0] = new_field(yMaxMessage - 2, int(xMaxMessage - 5), 0, 0, 0, 0);
+  messageFields[0] = new_field(yMaxMessage - 2, int(xMaxMessage - 5), 0, 2, 0, 0);
+  maxMessageChars = (yMaxMessage - 2) * (xMaxMessage - 5) - 1;
   messageFields[1] = NULL;
   assert(messageFields[0] != NULL);
 
   set_field_buffer(messageFields[0], 0, "");
   set_field_opts(messageFields[0], O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
-  set_field_back(messageFields[0], A_UNDERLINE);
+  set_field_back(messageFields[0], COLOR_PAIR(1) | A_UNDERLINE);
 
   messageForm = new_form(messageFields);
   assert(messageForm != NULL);
 
-  set_form_sub(messageForm, derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1));
+  set_form_sub(messageForm, messageFormSubWin);
 
-  refresh();
   wrefresh(mainWindow);
   wrefresh(messageWindow);
 }
@@ -182,6 +237,7 @@ void genUserListMenu()
 {
   userListVec.clear();
   userListMenu = new_menu(NULL);
+
   refreshUserList();
 
   int yMaxMessage, xMaxMessage;
@@ -189,11 +245,13 @@ void genUserListMenu()
 
   assert(userListMenu != NULL);
 
-  set_menu_sub(userListMenu, derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1));
+  set_menu_sub(userListMenu, userListMenuSubWin);
   set_menu_format(userListMenu, yMaxMessage - 2, 1);
+  set_menu_fore(userListMenu, COLOR_PAIR(2));
+  set_menu_back(userListMenu, COLOR_PAIR(1));
+  set_menu_grey(userListMenu, COLOR_PAIR(1));
   post_menu(userListMenu);
 
-  refresh();
   wrefresh(mainWindow);
   wrefresh(messageWindow);
 }
@@ -215,15 +273,16 @@ void toggleMessageWindow()
   {
     post_form(messageForm);
     unpost_menu(userListMenu);
+    curs_set(1);
   }
   else
   {
     unpost_form(messageForm);
     refreshUserList();
     post_menu(userListMenu);
+    curs_set(0);
   }
   showUserMenu = !showUserMenu;
-  refresh();
   wrefresh(mainWindow);
   wrefresh(messageWindow);
 }
@@ -232,14 +291,50 @@ void messageWindowEnter()
 {
   if (showUserMenu)
   {
-    friendHashId = userListVec[item_index(current_item(userListMenu))].hashId;
-    mvwprintw(mainWindow, 1, 2, string("chatNT wth peer " + friendHashId).c_str());
+    buddyHashId = userListVec[item_index(current_item(userListMenu))].hashId;
+    mvwprintw(mainWindow, 1, 2, string("Your hash id: " + peerControl->hashId).c_str());
+    mvwprintw(mainWindow, 2, 2, string("Chatting with " + buddyHashId).c_str());
     toggleMessageWindow();
   }
   else
   {
-    //todo:sendMessage
+    form_driver(messageForm, REQ_VALIDATION);
+    bool sendResult = peerControl->formPacketandSend(buddyHashId, string(trim_whitespaces(field_buffer(messageFields[0], 0))));
+    if (!sendResult)
+    {
+      info("Message sent successfully\n");
+    }
+    else
+    {
+      error("Message send failed\n");
+    }
+    form_driver(messageForm, REQ_CLR_FIELD);
   }
+  refreshMessages();
+}
+
+void refreshMessages()
+{
+  delwin(historyPad);
+  padLines = 0;
+  string historyString = "";
+  vector<Message> messages = peerControl->getMessages();
+  for (int i = 0; i < messages.size(); i++)
+  {
+    if (messages[i].sender == peerControl->hashId)
+    {
+      historyString += "You: " + messages[i].message + "\n";
+      padLines += (messages[i].message.length() + 5) / (xMaxHistory - 4) + 2;
+    }
+    else if (messages[i].sender == buddyHashId)
+    {
+      historyString += "Buddy: " + messages[i].message + "\n";
+      padLines += (messages[i].message.length() + 7) / (xMaxHistory - 4) + 2;
+    }
+  }
+  historyPad = newpad(padLines, xMaxHistory - 4);
+  waddstr(historyPad, historyString.c_str());
+  prefresh(historyPad, padColumn, 0, padPositionY, padPositionX, padPositionY + yMaxHistory - 3, padPositionX + xMaxHistory - 4);
 }
 
 void destroyObjects()
@@ -253,7 +348,8 @@ void destroyObjects()
   unpost_form(messageForm);
   free_form(messageForm);
   free_field(messageFields[0]);
-  //todo free menu
+  unpost_menu(userListMenu);
+  free_menu(userListMenu);
 }
 
 void destroyUI()

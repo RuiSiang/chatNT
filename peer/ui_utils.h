@@ -25,5 +25,6 @@ void genUserListMenu();
 void refreshUserList();
 void toggleMessageWindow();
 void messageWindowEnter();
+void refreshMessages();
 void destroyObjects();
 void destroyUI();
