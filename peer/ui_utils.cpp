@@ -1,154 +1,265 @@
 #include "ui_utils.h"
 
-#include <iostream>
-#include <string>
-#include <cstdio>
-#include <cstdlib>
 using namespace std;
 
-Scrollable::Scrollable()
+extern PeerControl *peerControl;
+FORM *connectionForm, *messageForm;
+MENU *userListMenu;
+FIELD *connectionFields[5], *messageFields[2];
+WINDOW *mainWindow, *connectionWindow, *messageWindow, *userListWindow;
+bool showUserMenu = 1;
+string friendHashId;
+
+char *trim_whitespaces(char *str)
 {
-  maxRowsInDisplayWindow = 0;
-  maxColsInDisplayWindow = 0;
-  charCntAllText = 0;
-  startingRowIdx = 0;
-  lastRowIdx = 0;
-  textBody = nullptr;
-  receiver = nullptr;
+  char *end;
+  while (isspace(*str))
+    str++;
+  if (*str == 0)
+    return str;
+  end = str + strnlen(str, 128) - 1;
+
+  while (end > str && isspace(*end))
+    end--;
+  *(end + 1) = '\0';
+  return str;
 }
 
-Scrollable::Scrollable(int rows, int cols, const char *receiverID)
+void connectionDriver(int ch)
 {
-  maxRowsInDisplayWindow = rows;
-  maxColsInDisplayWindow = cols;
-  textBody = new char[(rows - 2) * (cols - 3) * 50];
-
-  for (int i = 0; i < (rows - 2) * (cols - 3) * 50; i++)
+  switch (ch)
   {
-    textBody[i] = '\0';
+  case '\t':
+  case KEY_STAB:
+    form_driver(connectionForm, REQ_NEXT_FIELD);
+    form_driver(connectionForm, REQ_END_FIELD);
+    break;
+
+  case 127:
+  case '\b':
+  case KEY_BACKSPACE:
+    form_driver(connectionForm, REQ_DEL_PREV);
+    break;
+
+  default:
+    form_driver(connectionForm, ch);
+    break;
   }
 
-  receiver = new char[strlen(receiverID) + 1];
-  for (int i = 0; i < strlen(receiverID); i++)
-  {
-    receiver[i] = receiverID[i];
-  }
-  receiver[strlen(receiverID)] = '\0';
-
-  charCntAllText = 0;
-  startingRowIdx = 1; // 1-based
-  lastRowIdx = 1;
+  wrefresh(connectionWindow);
 }
 
-void Scrollable::addText(char inputHash[], char inputMessage[])
+void messageDriver(int ch)
 {
-  for (int i = 0; i < strlen(inputHash); i++)
+  switch (ch)
   {
-    textBody[charCntAllText] = inputHash[i];
-    charCntAllText++;
+  case '\t':
+  case KEY_STAB:
+    toggleMessageWindow();
+    break;
+  case 10:
+    messageWindowEnter();
+    break;
+  case 127:
+  case '\b':
+  case KEY_BACKSPACE:
+    if (!showUserMenu)
+      form_driver(messageForm, REQ_DEL_PREV);
+    break;
+
+  case KEY_DOWN:
+    if (showUserMenu)
+      menu_driver(userListMenu, REQ_DOWN_ITEM);
+    break;
+
+  case KEY_UP:
+    if (showUserMenu)
+      menu_driver(userListMenu, REQ_UP_ITEM);
+    break;
+
+  default:
+    if (!showUserMenu)
+      form_driver(messageForm, ch);
+    break;
   }
 
-  for (int i = 0; i < 1; i++)
-  {
-    textBody[charCntAllText] = ':';
-    charCntAllText++;
-  }
-
-  for (int i = 0; i < strlen(inputMessage); i++)
-  {
-    textBody[charCntAllText] = inputMessage[i];
-    charCntAllText++;
-  }
-
-  for (int i = 0; i < 2; i++)
-  {
-    textBody[charCntAllText] = '\n';
-    charCntAllText++;
-  }
-
-  lastRowIdx = getRowCount(textBody, maxRowsInDisplayWindow - 2, maxColsInDisplayWindow - 3);
-
-  /* Keeps every message from me in the vector messagesWithReceiver, refresh 的時候再把不存在在這個 vector 的 message
-        用 addText 的方式加到 textBody，並且更新 vector */
-  // messagesWithReceiver.push_back(Message(inputHash, inputMessage));
+  wrefresh(messageWindow);
 }
 
-void Scrollable::printSelectedText(WINDOW *messageDisplay, int rowLast)
+void initUI()
 {
-  int rowToStart = rowLast - maxRowsInDisplayWindow + 3;
-  char textDisplay[(maxRowsInDisplayWindow - 2) * (maxColsInDisplayWindow - 3)] = {0};
-  int charCntTextDisplay = 0;
+  initscr();
+  noecho();
+  start_color();
+  cbreak();
+  keypad(stdscr, TRUE);
 
-  int startingCharIndex = 0;
-  int endingCharIndex = 0;
-  for (int i = 0; i < strlen(textBody); i++)
-  {
-    if (getRowIndexOfAChar(textBody, i, maxRowsInDisplayWindow - 2, maxColsInDisplayWindow - 3) == rowToStart)
-    {
-      startingCharIndex = i;
-      break;
-    }
-  }
+  init_pair(1, COLOR_BLUE, COLOR_WHITE);
+  init_pair(2, COLOR_BLUE, COLOR_RED);
 
-  for (int i = 0; i < strlen(textBody); i++)
-  {
-    if (getRowIndexOfAChar(textBody, i, maxRowsInDisplayWindow - 2, maxColsInDisplayWindow - 3) == rowLast)
-    {
-      int startCharOfEndingLine = i;
-      if ((startCharOfEndingLine + maxColsInDisplayWindow - 3) >= strlen(textBody))
-        endingCharIndex = strlen(textBody) - 1;
-      else
-      {
-        endingCharIndex = startCharOfEndingLine + maxColsInDisplayWindow - 3 - 1;
-      }
-      break;
-    }
-  }
+  int yMax, xMax;
+  getmaxyx(stdscr, yMax, xMax);
+  mainWindow = newwin(yMax, xMax - 1, 0, 0);
+  assert(mainWindow != NULL);
+  box(mainWindow, 0, 0);
 
-  int totalStringLength = endingCharIndex - startingCharIndex + 1;
+  int yMaxMain, xMaxMain;
+  getmaxyx(mainWindow, yMaxMain, xMaxMain);
+  connectionWindow = derwin(mainWindow, 10, int(xMaxMain * 0.3 - 4), 1, int(xMax * 0.7));
+  assert(connectionWindow != NULL);
+  box(connectionWindow, 0, 0);
+  messageWindow = derwin(mainWindow, int(yMaxMain * 0.3 - 1), int(xMaxMain * 0.7 - 5), int(yMaxMain * 0.7), 4);
+  assert(messageWindow != NULL);
+  box(messageWindow, 0, 0);
+  //wbkgd(messageWindow, COLOR_PAIR(1));
 
-  for (int i = 0; i < totalStringLength; i++)
-  {
-    textDisplay[charCntTextDisplay] = textBody[startingCharIndex + i];
-    charCntTextDisplay++;
-  }
-
-  mvwprintw(messageDisplay, 0, 0, textDisplay);
-  wrefresh(messageDisplay);
+  mvwprintw(mainWindow, 1, 2, "chatNT - Anonymous Chatroom");
 }
 
-int getRowCount(char message[], const int maxMessageRows, const int maxMessageCols)
+void genConnectionForm()
 {
-  int stringLength = strlen(message);
-  int basicRows = stringLength / maxMessageCols;
-  if (stringLength % maxMessageCols != 0)
-  {
-    basicRows++;
-  }
+  connectionFields[0] = new_field(1, 10, 0, 2, 0, 0);
+  connectionFields[1] = new_field(1, 20, 0, 7, 0, 0);
+  connectionFields[2] = new_field(1, 10, 3, 2, 0, 0);
+  connectionFields[3] = new_field(1, 20, 3, 7, 0, 0);
+  mvwprintw(connectionWindow, 7, 3, "Press Tab to switch field");
+  mvwprintw(connectionWindow, 8, 3, "Press Enter to submit");
+  connectionFields[4] = NULL;
+  assert(connectionFields[0] != NULL && connectionFields[1] != NULL && connectionFields[2] != NULL && connectionFields[3] != NULL);
 
-  for (int i = 0; i < stringLength; i++)
-  {
-    if (message[i] == '\n')
-      basicRows++;
-  }
-  return basicRows - 2;
+  set_field_buffer(connectionFields[0], 0, "IP");
+  set_field_buffer(connectionFields[1], 0, "");
+  set_field_buffer(connectionFields[2], 0, "Port");
+  set_field_buffer(connectionFields[3], 0, "");
+
+  set_field_opts(connectionFields[0], O_VISIBLE | O_PUBLIC | O_AUTOSKIP);
+  set_field_opts(connectionFields[1], O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
+  set_field_opts(connectionFields[2], O_VISIBLE | O_PUBLIC | O_AUTOSKIP);
+  set_field_opts(connectionFields[3], O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
+
+  set_field_back(connectionFields[1], A_UNDERLINE);
+  set_field_back(connectionFields[3], A_UNDERLINE);
+
+  connectionForm = new_form(connectionFields);
+  assert(connectionForm != NULL);
+  int yMaxConnection, xMaxConnection;
+  getmaxyx(connectionWindow, yMaxConnection, xMaxConnection);
+  set_form_sub(connectionForm, derwin(connectionWindow, 6, int(xMaxConnection - 4), 1, 1));
+  post_form(connectionForm);
+
+  refresh();
+  wrefresh(mainWindow);
+  wrefresh(connectionWindow);
 }
 
-int getRowIndexOfAChar(char message[], int idxOfTheChar, const int maxMessageRows, const int maxMessageCols)
+void genMessageForm()
 {
-  // row index is 1-based, idxOfTheChar is 0-based
-  int rowIndex = 0;
-  rowIndex += (idxOfTheChar + 1) / maxMessageCols;
-  if ((idxOfTheChar + 1) % maxMessageCols != 0)
+  int yMaxMessage, xMaxMessage;
+  getmaxyx(messageWindow, yMaxMessage, xMaxMessage);
+
+  messageFields[0] = new_field(yMaxMessage - 2, int(xMaxMessage - 5), 0, 0, 0, 0);
+  messageFields[1] = NULL;
+  assert(messageFields[0] != NULL);
+
+  set_field_buffer(messageFields[0], 0, "");
+  set_field_opts(messageFields[0], O_VISIBLE | O_PUBLIC | O_EDIT | O_ACTIVE);
+  set_field_back(messageFields[0], A_UNDERLINE);
+
+  messageForm = new_form(messageFields);
+  assert(messageForm != NULL);
+
+  set_form_sub(messageForm, derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1));
+
+  refresh();
+  wrefresh(mainWindow);
+  wrefresh(messageWindow);
+}
+
+vector<User> userListVec;
+ITEM **userList;
+
+void genUserListMenu()
+{
+  userListVec.clear();
+  userListMenu = new_menu(NULL);
+  refreshUserList();
+
+  int yMaxMessage, xMaxMessage;
+  getmaxyx(messageWindow, yMaxMessage, xMaxMessage);
+
+  assert(userListMenu != NULL);
+
+  set_menu_sub(userListMenu, derwin(messageWindow, yMaxMessage - 2, int(xMaxMessage - 2), 1, 1));
+  set_menu_format(userListMenu, yMaxMessage - 2, 1);
+  post_menu(userListMenu);
+
+  refresh();
+  wrefresh(mainWindow);
+  wrefresh(messageWindow);
+}
+
+void refreshUserList()
+{
+  peerControl->updateList();
+  userListVec = peerControl->getList();
+  userList = (ITEM **)calloc(userListVec.size() + 1, sizeof(ITEM *));
+  for (int i = 0; i < userListVec.size(); i++)
+    userList[i] = new_item(userListVec[i].hashId.c_str(), NULL);
+  userList[userListVec.size()] = new_item(NULL, NULL);
+  set_menu_items(userListMenu, userList);
+}
+
+void toggleMessageWindow()
+{
+  if (showUserMenu)
   {
-    rowIndex++;
+    post_form(messageForm);
+    unpost_menu(userListMenu);
   }
-  for (int i = 0; i <= idxOfTheChar; i++)
+  else
   {
-    if (message[i] == '\n')
-    {
-      rowIndex++;
-    }
+    unpost_form(messageForm);
+    refreshUserList();
+    post_menu(userListMenu);
   }
-  return rowIndex;
+  showUserMenu = !showUserMenu;
+  refresh();
+  wrefresh(mainWindow);
+  wrefresh(messageWindow);
+}
+
+void messageWindowEnter()
+{
+  if (showUserMenu)
+  {
+    friendHashId = userListVec[item_index(current_item(userListMenu))].hashId;
+    mvwprintw(mainWindow, 1, 2, string("chatNT wth peer " + friendHashId).c_str());
+    toggleMessageWindow();
+  }
+  else
+  {
+    //todo:sendMessage
+  }
+}
+
+void destroyObjects()
+{
+  unpost_form(connectionForm);
+  free_form(connectionForm);
+  free_field(connectionFields[0]);
+  free_field(connectionFields[1]);
+  free_field(connectionFields[2]);
+  free_field(connectionFields[3]);
+  unpost_form(messageForm);
+  free_form(messageForm);
+  free_field(messageFields[0]);
+  //todo free menu
+}
+
+void destroyUI()
+{
+  delwin(connectionWindow);
+  delwin(messageWindow);
+  delwin(mainWindow);
+  endwin();
 }
