@@ -1,67 +1,29 @@
+#include "logger.h"
 #include "peer_control.h"
 
 #include <ncursesw/ncurses.h>
+#include <ncursesw/form.h>
+#include <ncursesw/panel.h>
+#include <ncursesw/menu.h>
+#include <cassert>
 #include <cstring>
-#include <vector>
-int getRowCount(char message[], const int maxMessageRows, const int maxMessageCols);
-int getRowIndexOfAChar(char message[], int idxOfTheChar, const int maxMessageRows, const int maxMessageCols);
+#include <cstdlib>
+#include <cctype>
 
-struct ConnectionInfo
-{
-  char ipString[100] = {0};
-  char portString[100] = {0};
-};
+#define ctrl(x) ((x) & 0x1f)
 
-class Scrollable
-{
-public:
-  int maxRowsInDisplayWindow, maxColsInDisplayWindow, charCntAllText, startingRowIdx, lastRowIdx;
-  char *textBody;
-  char *receiver;
-  std::vector<Message> messagesWithReceiver;
-  Scrollable();
-  Scrollable(int, int, const char *);
-  void addText(char[], char[]);
-  void printAllText(WINDOW *messageDisplay)
-  {
-    mvwprintw(messageDisplay, 0, 0, textBody);
-    wrefresh(messageDisplay);
-  }
-  void printSelectedText(WINDOW *, int);
-};
+//misc functions
+char *trim_whitespaces(char *);
+void connectionDriver(int ch);
+void messageDriver(int ch);
 
-class ScrollableList
-{
-public:
-  std::vector<Scrollable> scrollableList;
-  bool isNewReceiver(const char *receiverIDToCheck)
-  {
-    for (int i = 0; i < scrollableList.size(); i++)
-    {
-      if (strcmp(scrollableList[i].receiver, receiverIDToCheck) == 0)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void addReceiver(Scrollable newReceiver)
-  {
-    scrollableList.push_back(newReceiver);
-  }
-
-  int findIdxInScrollableArray(const char *receiverIDToCheck)
-  {
-    int index = 0;
-    for (int i = 0; i < scrollableList.size(); i++)
-    {
-      if (strcmp(scrollableList[i].receiver, receiverIDToCheck) == 0)
-      {
-        index = i;
-        return i;
-      }
-    }
-    return -1;
-  }
-};
+//core functions
+void initUI();
+void genConnectionForm();
+void genMessageForm();
+void genUserListMenu();
+void refreshUserList();
+void toggleMessageWindow();
+void messageWindowEnter();
+void destroyObjects();
+void destroyUI();
