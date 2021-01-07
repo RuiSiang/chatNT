@@ -19,7 +19,8 @@ struct User
 //message object declaration
 struct Message
 {
-  std::string hashId;
+  std::string sender;
+  std::string receiver;
   std::string message;
 };
 
