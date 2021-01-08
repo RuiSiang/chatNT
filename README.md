@@ -32,9 +32,10 @@ When each peer is initialized, a RSA keypair is generated, with the public key a
 
 0. Peer A routinely fetches the newest user list(ip, port, public key, hashid) of all peers from the relay server and validates the information(rehash the public key to check hashid).
 1. Peer A selects 3 random peers from the local user list, say P1, P2, and P3.
-2. Peer A forms a specially crafted packet formatted as the following.
+2. Peer A forms a specially crafted packet formatted as the following. As you can see, each peer can only decrypt a portion of the packet, hence passing on the packet without knowledge of the full information.
+
 ![packet image](https://github.com/RuiSiang/chatNT/blob/main/images/packet.jpg?raw=true)
-As you can see, each peer can only decrypt a portion of the packet, hence passing on the packet without knowledge of the full information.
+
 3. Peer A sends the packet to P1.
 4. P1 decrypts his part, gets hashid on P2, looks up information on P2 and sends the packet minus his part to P2.
 5. P2 decrypts his part, gets hashid on P3, looks up information on P3 and sends the packet minus his part to P3.
