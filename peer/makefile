@@ -5,16 +5,16 @@ CC = g++
 INCLUDE = -I. -I./include
 CFLAGS = -Wall -Wextra -g -std=c++14
 ifdef OS
-   PFLAGS = -lpthread -lws2_32 lib/libssl.lib lib/libcrypto.lib
+   PFLAGS = -static-libgcc -static-libstdc++ -lpthread -lws2_32 lib/win/libssl.lib lib/win/libcrypto.lib -L${CURDIR}/lib/win -lncursesw -lformw -lpanelw -lmenuw
 else
    ifeq ($(shell uname), Linux)
-      PFLAGS = -lpthread lib/libssl.lib lib/libcrypto.lib
+      PFLAGS = -static-libgcc -static-libstdc++ -L${CURDIR}/lib/linux -lssl -lcrypto -lz -ldl -lform -lpanel -lmenu -lncurses -lpthread
    endif
 endif
 
 #runner
-peer: peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o
-	$(CC) peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o -o bin/peer $(PFLAGS)
+peer: peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o ui_utils.o
+	$(CC) peer.o listener_thread.o handler_thread.o socket_control.o logger.o ssl_handler.o base64.o peer_control.o ui_utils.o -o bin/peer $(PFLAGS)
 
 peer.o: peer.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c peer.cpp
@@ -40,6 +40,9 @@ base64.o: base64.cpp base64.h
 peer_control.o: peer_control.cpp peer_control.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c peer_control.cpp
 
+ui_utils.o: ui_utils.cpp ui_utils.h
+	$(CC) $(INCLUDE) $(CFLAGS) -c ui_utils.cpp
+
 clean:
 	rm -f peer.o
 	rm -f listener_thread.o
@@ -49,3 +52,4 @@ clean:
 	rm -f ssl_handler.o
 	rm -f base64.o
 	rm -f peer_control.o
+	rm -f ui_utils.o

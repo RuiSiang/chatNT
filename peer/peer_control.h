@@ -22,6 +22,7 @@ public:
   bool formPacketandSend(std::string, std::string); //forms packet and sends it
   std::vector<User> getList() { return userList; } //returns user list
   std::vector<Message> getMessages() { return messages; } //returns all messages
+  std::string hashId;
 
 private:
   SocketControl *mainSocketControl; //socket file descriptor for connection to relay server

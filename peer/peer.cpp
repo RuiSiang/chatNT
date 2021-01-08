@@ -1,105 +1,42 @@
-#include "peer_control.h"
-#include "logger.h"
-
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
-#include <vector>
-
-#ifdef _WIN32
-#include <WinSock2.h>
-#endif
+#include "ui_utils.h"
 
 using namespace std;
 
-//test driver program
-int main(int argc, char *argv[])
+PeerControl *peerControl;
+extern FORM *connectionForm, *messageForm;
+extern FIELD *connectionFields[5], *messageFields[3];
+extern WINDOW *mainWindow, *connectionWindow, *messageWindow, *userListWindow;
+
+int main()
 {
-  //initialization
-  char ip[100];
-  unsigned int port;
-  cout << "Please input relay server IP (v4): ";
-  cin >> ip;
-  cout << "Please input relay server port: ";
-  cin >> port;
+  int ch;
 
-  PeerControl *peerControl = new PeerControl(ip, port);
+  initUI();
 
-  //functionals
-  while (true)
+  genConnectionForm();
+
+  while ((ch = getch()) != 10)
+    connectionDriver(ch);
+  mvwprintw(connectionWindow, 8, 3, "                          ");
+  mvwprintw(connectionWindow, 7, 3, "Loading...                ");
+  wrefresh(connectionWindow);
+  form_driver(connectionForm, REQ_VALIDATION);
+
+  peerControl = new PeerControl(trim_whitespaces(field_buffer(connectionFields[1], 0)), stoi(string(trim_whitespaces(field_buffer(connectionFields[3], 0)))));
+  mvwprintw(connectionWindow, 7, 3, "                          ");
+  wrefresh(connectionWindow);
+
+  curs_set(0);
+  genMessageForm();
+  genUserListMenu();
+
+  while ((ch = getch()) != ctrl('e'))
   {
-    string command;
-    cout << "Input test command: ";
-    cin >> command;
-    if (command == "exit")
-    {
-      peerControl->terminate();
-      exit(0);
-    }
-    else if (command == "list")
-    {
-      peerControl->updateList();
-      vector<User> userList = peerControl->getList();
-      cout << "================================================================\n";
-      for (unsigned int i = 0; i < userList.size(); i++)
-      {
-        if (i != 0)
-        {
-          cout << "----------------------------------------------------------------\n";
-        }
-        cout << userList[i].hashId << "\n";
-        cout << setw(32) << "IP: " + userList[i].ip << setw(32) << "Port: " + to_string(userList[i].port) << "\n";
-        cout << userList[i].publicKey << "\n";
-      }
-      cout << "================================================================\n";
-    }
-    else if (command == "send")
-    {
-      string receiver, message;
-      cout << "Please input receiver hash id: ";
-      cin >> receiver;
-      peerControl->updateList();
-      while (!peerControl->userExists(receiver))
-      {
-        peerControl->updateList();
-        cout << "User hash id non-existent. Please try again: ";
-        cin >> receiver;
-      }
-      cout << "Please input message to send:\n";
-      cin.ignore();
-      message = "\n";
-      getline(cin, message);
-      bool sendResult = peerControl->formPacketandSend(receiver, message);
-      if (!sendResult)
-      {
-        info("Message sent successfully\n");
-      }
-      else
-      {
-        error("Message send failed\n");
-      }
-    }
-    else if (command == "messages")
-    {
-      peerControl->updateList();
-      vector<Message> messages = peerControl->getMessages();
-      cout << "================================================================\n";
-      for (unsigned int i = 0; i < messages.size(); i++)
-      {
-        if (i != 0)
-        {
-          cout << "----------------------------------------------------------------\n";
-        }
-        cout << messages[i].hashId << "\n";
-        cout << messages[i].message << "\n";
-      }
-      cout << "================================================================\n";
-    }
+    messageDriver(ch);
   }
 
-  //closing
-  delete peerControl;
+  destroyObjects();
+  destroyUI();
 
   return 0;
 }
