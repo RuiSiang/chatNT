@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
   WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
   unsigned int port;
+  cout<<"chatNT - Anonymous Chatroom\n"
   cout << "Please input server port: ";
   cin >> port;
 

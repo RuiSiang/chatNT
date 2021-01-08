@@ -1,0 +1,7 @@
+releases/
+*.o
+*.obj
+*.out
+*.app
+*-example.cpp
+*.log
