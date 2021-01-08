@@ -1,9 +1,9 @@
 # chatNT
 ![test-compiling CI](https://github.com/RuiSiang/chatNT/workflows/test-compiling%20CI/badge.svg)
 
-chat Not Tracable: Anonymous p2p chatroom application in C++ based on onion relay concept.
+chat Not Tracable: Anonymous p2p chat application in C++ based on onion relay concept.
 
-## Supported OS
+## Supported OS:
 Windows and Linux (tested on windows-latest and ubuntu-latest)
 
 ## Dependencies (Compile):
@@ -24,10 +24,11 @@ make -C relay
 ./peer/bin/peer
 ```
 
-## Motivation
+## Motivation:
 In the past few years, freedoms of speech and press has been steeply violated all around the world. chatNT is written and designed to provide journalists and whistleblowers a reliable messaging method without fear of censorship or knowledge of their whereabouts.
 
 ## How it Works:
+
 When each peer is initialized, a RSA keypair is generated, with the public key and hashid(hash of the public key) sent to and registered at the server. Let's say peer A wants to send a message to peer B.
 
 0. Peer A routinely fetches the newest user list(ip, port, public key, hashid) of all peers from the relay server and validates the information(rehash the public key to check hashid).
@@ -41,11 +42,19 @@ When each peer is initialized, a RSA keypair is generated, with the public key a
 5. P2 decrypts his part, gets hashid on P3, looks up information on P3 and sends the packet minus his part to P3 via P2P.
 6. P3 decrypts his part, gets hashid on receipient(B),looks up information on B and sends the inner packet of part P3 to B via P2P.
 7. B decrypts the inner packet(part R) and gets the message and sender hashid.
+
+To sum it up, P1 only knows about A and P2, P2 only knows about P1 and P3, P3 only knows about P2 and B, B knows about P3 and A(only hashid, no ip nor port)
 ## Troubleshoot:
 - Getting error "Error opening terminal: xterm" when running peer in Linux. This error is caused by missing environmental variables required by ncurses library. Simply run the shell script "./peer/bin/linux-env.sh" to add the variables.
 
 ## Malicious Scenario Handling
-TBD
+Case: Malicious relay server.
+
+Solution: For the first type of attack, the relay server attempts to alter the public key in the user list. Peer validates hashid against public key provided, and since it is nearly impossible to find a public key with the exact hash id, malicious relay server is easily detected. The other type of attack will be manipulating the ip in the user list. It's pointeless since all parts inside the packet is protected by cryptography, the content of intercepted packets are still unreadable.
+
+Case: Middle peers are compromised
+
+Solution: Software based on onion relay concept rely on large number of peers involved in the network, thus reinforcing the randomness and decreases the chance of a designated peer chosen multiple times. Compromisation of a single middle peer is not sufficient to do any damage(that's the point of the concept). For a two-node compromisation scenario, only when the first and last node is both compromised and a time correlation action occurs, will the malicious actor be able to know what path is used. But still, the message content is protected by cryptography.
 
 ## Screenshots
 ![peer image](https://github.com/RuiSiang/chatNT/blob/main/images/peer.jpg?raw=true)
