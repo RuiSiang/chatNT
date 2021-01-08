@@ -5,3 +5,7 @@ releases/
 *.app
 *-example.cpp
 *.log
+*/bin/*
+!*/bin/*.dll
+!*/bin/*.sh
+!*/bin/.gitkeep
