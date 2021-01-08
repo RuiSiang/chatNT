@@ -1,4 +1,5 @@
 #include "handler_thread.h"
+#include "ui_utils.h"
 #include "logger.h"
 
 #include <cstring>
@@ -195,6 +196,7 @@ int HandlerThread::process(string receiveString)
           tmp.receiver = sslHandler->getHashId();
           tmp.message = blocks[1];
           messages->push_back(tmp);
+          refreshMessages();
         }
         sendMessage("SUCCESS");
       }
