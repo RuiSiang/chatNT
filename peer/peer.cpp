@@ -17,16 +17,19 @@ int main()
 
   while ((ch = getch()) != 10)
     connectionDriver(ch);
-  mvwprintw(connectionWindow, 7, 3, "                          ");
   mvwprintw(connectionWindow, 8, 3, "                          ");
-  form_driver(connectionForm, REQ_NEXT_FIELD);
+  mvwprintw(connectionWindow, 7, 3, "Loading...                ");
+  wrefresh(connectionWindow);
+  form_driver(connectionForm, REQ_VALIDATION);
 
   peerControl = new PeerControl(trim_whitespaces(field_buffer(connectionFields[1], 0)), stoi(string(trim_whitespaces(field_buffer(connectionFields[3], 0)))));
+  mvwprintw(connectionWindow, 7, 3, "                          ");
+  wrefresh(connectionWindow);
 
-  refresh();
-
+  curs_set(0);
   genMessageForm();
   genUserListMenu();
+
   while ((ch = getch()) != ctrl('e'))
   {
     messageDriver(ch);
