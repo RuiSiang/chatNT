@@ -8,7 +8,7 @@ ifdef OS
    PFLAGS = -static-libgcc -static-libstdc++ -lpthread -lws2_32 lib/win/libssl.lib lib/win/libcrypto.lib -L${CURDIR}/lib/win -lncursesw -lformw -lpanelw -lmenuw
 else
    ifeq ($(shell uname), Linux)
-      PFLAGS = -static-libgcc -static-libstdc++ -L${CURDIR}/lib/linux -lssl -lcrypto -lz -ldl -lncursesw -lformw -lpanelw -lmenuw -lpthread
+      PFLAGS = -static-libgcc -static-libstdc++ -L${CURDIR}/lib/linux -lssl -lcrypto -lz -ldl -lform -lpanel -lmenu -lncurses -lpthread
    endif
 endif
 
