@@ -23,6 +23,7 @@ int main()
   form_driver(connectionForm, REQ_VALIDATION);
 
   peerControl = new PeerControl(trim_whitespaces(field_buffer(connectionFields[1], 0)), stoi(string(trim_whitespaces(field_buffer(connectionFields[3], 0)))));
+  mvwprintw(mainWindow, 1, 2, string("Your hash id: " + peerControl->hashId).c_str());
   mvwprintw(connectionWindow, 7, 3, "                          ");
   wrefresh(connectionWindow);
 
