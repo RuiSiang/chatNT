@@ -333,6 +333,8 @@ void refreshMessages()
     }
   }
   historyPad = newpad(padLines, xMaxHistory - 4);
+  wbkgd(historyPad, COLOR_PAIR(1));
+
   waddstr(historyPad, historyString.c_str());
   prefresh(historyPad, padColumn, 0, padPositionY, padPositionX, padPositionY + yMaxHistory - 3, padPositionX + xMaxHistory - 4);
 }

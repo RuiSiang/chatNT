@@ -3,6 +3,9 @@
 
 chat Not Tracable: Anonymous p2p chatroom application in C++ based on onion relay concept.
 
+![peer image](https://github.com/RuiSiang/chatNT/blob/fix-design-and-edit-readme/peer.jpg?raw=true)
+
+![relay image](https://github.com/RuiSiang/chatNT/blob/fix-design-and-edit-readme/relay.jpg?raw=true)
 ## Supported OS
 Windows and Linux (tested on windows-latest and ubuntu-latest)
 
